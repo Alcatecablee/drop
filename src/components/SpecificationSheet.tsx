@@ -1,0 +1,190 @@
+import { Link } from '@tanstack/react-router'
+import type { ProductWithRelations } from '../lib/types'
+
+interface SpecificationSheetProps {
+  product: ProductWithRelations
+}
+
+export function SpecificationSheet({ product }: SpecificationSheetProps) {
+  const verifiedDate = product.last_verified_at
+    ? new Date(product.last_verified_at).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : null
+
+  return (
+    <div className="border border-[#E5E5E3] bg-white p-6">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-[#111111] pb-3 border-b border-[#E5E5E3] mb-4">
+        Software Specifications
+      </h3>
+
+      <dl className="text-xs divide-y divide-[#F1F1EF]">
+        {/* Verification */}
+        <div className="py-2.5 flex justify-between items-start gap-4">
+          <dt className="text-[#555552]">Verification Status</dt>
+          <dd className="text-right font-medium text-[#111111]">
+            {product.verification_status === 'verified' ? (
+              <span className="text-[#111111]">
+                Verified {verifiedDate ? `(${verifiedDate})` : ''}
+              </span>
+            ) : product.verification_status === 'community_submitted' ? (
+              <span className="text-[#555552]">Community Submitted</span>
+            ) : (
+              <span className="text-[#888885]">Unverified Research Entry</span>
+            )}
+          </dd>
+        </div>
+
+        {/* Operational Status */}
+        <div className="py-2.5 flex justify-between items-start gap-4">
+          <dt className="text-[#555552]">Operational Status</dt>
+          <dd className="text-right font-medium capitalize text-[#111111]">
+            {product.operational_status}
+          </dd>
+        </div>
+
+        {/* Primary Category */}
+        <div className="py-2.5 flex justify-between items-start gap-4">
+          <dt className="text-[#555552]">Category</dt>
+          <dd className="text-right font-medium text-[#111111]">
+            {product.primary_category ? (
+              <Link
+                to="/categories/$slug"
+                params={{ slug: product.primary_category.slug }}
+                className="hover:underline"
+              >
+                {product.primary_category.name}
+              </Link>
+            ) : (
+              'General'
+            )}
+          </dd>
+        </div>
+
+        {/* Built In */}
+        <div className="py-2.5 flex justify-between items-start gap-4">
+          <dt className="text-[#555552]">Country of Origin</dt>
+          <dd className="text-right font-medium text-[#111111]">
+            {product.country_built ? (
+              <Link
+                to="/countries/$slug"
+                params={{ slug: product.country_built.slug }}
+                className="hover:underline"
+              >
+                {product.country_built.name}
+              </Link>
+            ) : (
+              'Africa'
+            )}
+          </dd>
+        </div>
+
+        {/* Countries Served */}
+        <div className="py-2.5 flex justify-between items-start gap-4">
+          <dt className="text-[#555552]">Supported Markets</dt>
+          <dd className="text-right font-medium text-[#111111] max-w-[200px]">
+            {product.countries_served && product.countries_served.length > 0 ? (
+              <div className="flex flex-wrap justify-end gap-1">
+                {product.countries_served.map((c, i) => (
+                  <span key={c.id}>
+                    <Link
+                      to="/countries/$slug"
+                      params={{ slug: c.slug }}
+                      className="hover:underline"
+                    >
+                      {c.name}
+                    </Link>
+                    {i < (product.countries_served?.length || 0) - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              'Regional'
+            )}
+          </dd>
+        </div>
+
+        {/* Pricing Model */}
+        <div className="py-2.5 flex justify-between items-start gap-4">
+          <dt className="text-[#555552]">Pricing Model</dt>
+          <dd className="text-right font-medium capitalize text-[#111111]">
+            {product.pricing_model.replace(/_/g, ' ')}
+          </dd>
+        </div>
+
+        {/* Starting Price Display */}
+        {product.starting_price_display && (
+          <div className="py-2.5 flex justify-between items-start gap-4">
+            <dt className="text-[#555552]">Starting Price</dt>
+            <dd className="text-right font-mono font-medium text-[#111111]">
+              {product.starting_price_display}
+            </dd>
+          </div>
+        )}
+
+        {/* Platform Type */}
+        {product.platform_type && (
+          <div className="py-2.5 flex justify-between items-start gap-4">
+            <dt className="text-[#555552]">Platform</dt>
+            <dd className="text-right font-medium text-[#111111]">
+              {product.platform_type}
+            </dd>
+          </div>
+        )}
+
+        {/* Open Source */}
+        <div className="py-2.5 flex justify-between items-start gap-4">
+          <dt className="text-[#555552]">Source Code</dt>
+          <dd className="text-right font-medium text-[#111111]">
+            {product.is_open_source ? (
+              product.github_url ? (
+                <a
+                  href={product.github_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  Open Source ↗
+                </a>
+              ) : (
+                'Open Source'
+              )
+            ) : (
+              'Proprietary'
+            )}
+          </dd>
+        </div>
+
+        {/* Builder / Founder Attribution */}
+        {product.builder_name && (
+          <div className="py-2.5 flex justify-between items-start gap-4">
+            <dt className="text-[#555552]">Builder / Lead</dt>
+            <dd className="text-right font-medium text-[#111111]">
+              {product.builder_url ? (
+                <a
+                  href={product.builder_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  {product.builder_name} ↗
+                </a>
+              ) : (
+                product.builder_name
+              )}
+            </dd>
+          </div>
+        )}
+      </dl>
+
+      {/* Founder Disclosure Footnote */}
+      {product.is_founder_submitted && (
+        <div className="mt-4 pt-3 border-t border-[#F1F1EF] text-[11px] text-[#888885] leading-relaxed">
+          Disclosure: Founder-submitted listing; audited against standard DropYourSaaS verification criteria.
+        </div>
+      )}
+    </div>
+  )
+}
