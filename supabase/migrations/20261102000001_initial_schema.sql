@@ -419,8 +419,8 @@ BEGIN
             USING ERRCODE = 'P0001';
     END IF;
 
-    -- Extract clean domain for duplicate check
-    v_clean_domain := regexp_replace(regexp_replace(lower(p_website_url), '^https?://(www\.)?', ''), '/.*$', '');
+    -- Extract clean domain for duplicate check (stripping protocol, www., paths, queries, and hash fragments)
+    v_clean_domain := regexp_replace(regexp_replace(lower(p_website_url), '^https?://(www\.)?', ''), '[/?#].*$', '');
 
     IF v_clean_domain = '' THEN
         RAISE EXCEPTION 'INVALID_DOMAIN: Cannot extract valid domain from URL.' USING ERRCODE = '22023';
@@ -446,7 +446,7 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
-    IF p_countries_served_ids IS NULL OR array_length(p_countries_served_ids, 1) = 0 THEN
+    IF COALESCE(cardinality(p_countries_served_ids), 0) = 0 THEN
         RAISE EXCEPTION 'INVALID_COUNTRY_SERVED: At least one served country is required.'
             USING ERRCODE = '22023';
     END IF;
@@ -465,7 +465,7 @@ BEGIN
     -- Check if domain already exists in products
     IF EXISTS (
         SELECT 1 FROM public.products
-        WHERE regexp_replace(regexp_replace(lower(website_url), '^https?://(www\.)?', ''), '/.*$', '') = v_clean_domain
+        WHERE regexp_replace(regexp_replace(lower(website_url), '^https?://(www\.)?', ''), '[/?#].*$', '') = v_clean_domain
     ) THEN
         RAISE EXCEPTION 'DUPLICATE_DOMAIN: A software listing for domain "%" already exists.', v_clean_domain
             USING ERRCODE = '23505';
@@ -475,7 +475,7 @@ BEGIN
     IF EXISTS (
         SELECT 1 FROM public.submissions
         WHERE status = 'pending'
-          AND regexp_replace(regexp_replace(lower(website_url), '^https?://(www\.)?', ''), '/.*$', '') = v_clean_domain
+          AND regexp_replace(regexp_replace(lower(website_url), '^https?://(www\.)?', ''), '[/?#].*$', '') = v_clean_domain
     ) THEN
         RAISE EXCEPTION 'DUPLICATE_SUBMISSION: A submission for domain "%" is already pending editorial moderation.', v_clean_domain
             USING ERRCODE = '23505';

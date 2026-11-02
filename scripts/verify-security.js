@@ -318,8 +318,67 @@ async function runTests() {
     }
     assert(fakeCountryServedBlocked, 'Submission with non-existent or inactive served country blocked with INVALID_COUNTRY_SERVED')
 
-    // 9. STRICT TLS & AUTHENTICATION REJECTION TEST (SQLSTATE 28P01)
-    console.log('\n--- 9. Strict TLS Verification & Auth Rejection (28P01) ---')
+    let emptyServedBlocked = false
+    try {
+      await client.query(
+        `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10);`,
+        ['Taxonomy Test Empty', `https://taxonomy-empty-${Date.now()}.co.za`, 'Tag', 'Desc', catId, countryId, [], 'free', null, 'T', 't@e.co', true, 'ip_tax_4']
+      )
+    } catch (err) {
+      if (err.message.includes('INVALID_COUNTRY_SERVED')) emptyServedBlocked = true
+    }
+    assert(emptyServedBlocked, 'Submission with empty served countries array ([]) blocked with INVALID_COUNTRY_SERVED via cardinality()')
+
+    // 9. CANONICAL DOMAIN NORMALIZATION (QUERY & FRAGMENT STRIPPING) TESTS
+    console.log('\n--- 9. URL Normalization & Query/Fragment Stripping Tests ---')
+    let queryDupBlocked = false
+    try {
+      await client.query(
+        `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10);`,
+        ['QuickBridge Query Test', 'https://quickbridge.app?utm_source=twitter&ref=directory', 'Tag', 'Desc', catId, countryId, [countryId], 'free', null, 'T', 't@e.co', true, 'ip_query_1']
+      )
+    } catch (err) {
+      if (err.message.includes('DUPLICATE_DOMAIN')) queryDupBlocked = true
+    }
+    assert(queryDupBlocked, 'Catalog duplicate with query parameters (?utm_source=...) blocked with DUPLICATE_DOMAIN')
+
+    let hashDupBlocked = false
+    try {
+      await client.query(
+        `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10);`,
+        ['QuickBridge Hash Test', 'https://quickbridge.app#pricing-section', 'Tag', 'Desc', catId, countryId, [countryId], 'free', null, 'T', 't@e.co', true, 'ip_hash_1']
+      )
+    } catch (err) {
+      if (err.message.includes('DUPLICATE_DOMAIN')) hashDupBlocked = true
+    }
+    assert(hashDupBlocked, 'Catalog duplicate with hash fragment (#pricing) blocked with DUPLICATE_DOMAIN')
+
+    // Test cross-submission canonical deduplication (submission 1 has query, submission 2 has fragment)
+    const testCanonicalBase = `canonical-edge-${Date.now()}.co.za`
+    const sub1Res = await client.query(
+      `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10);`,
+      ['Canonical Base App', `https://${testCanonicalBase}?ref=producthunt`, 'Tag', 'Desc', catId, countryId, [countryId], 'free', null, 'T', 't@e.co', true, 'ip_canon_1']
+    )
+    assert(sub1Res.rows[0].submit_product_with_rate_limit !== null, 'First submission with query parameter successfully recorded')
+
+    let crossDupBlocked = false
+    try {
+      await client.query(
+        `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10);`,
+        ['Canonical Base App 2', `https://${testCanonicalBase}#features`, 'Tag', 'Desc', catId, countryId, [countryId], 'free', null, 'T', 't@e.co', true, 'ip_canon_2']
+      )
+    } catch (err) {
+      if (err.message.includes('DUPLICATE_SUBMISSION') || err.message.includes('duplicate key value')) {
+        crossDupBlocked = true
+      }
+    }
+    assert(crossDupBlocked, 'Second pending submission for same domain with different fragment blocked with DUPLICATE_SUBMISSION')
+
+    // Clean up canonical test
+    await client.query(`DELETE FROM public.submissions WHERE website_url LIKE '%${testCanonicalBase}%';`)
+
+    // 10. STRICT TLS & AUTHENTICATION REJECTION TEST (SQLSTATE 28P01)
+    console.log('\n--- 10. Strict TLS Verification & Auth Rejection (28P01) ---')
     assert(client.connection.stream.authorized === true, 'TLS certificate chain verified and stream is authorized by Root CA')
 
     let authFailed28P01 = false

@@ -47,24 +47,32 @@ function isValidIp(ip: string): boolean {
 }
 
 function resolveClientIp(headers: Record<string, string | undefined>, serverIp?: string): string {
-  // In production behind Cloudflare, CF-Connecting-IP is set by the edge proxy
-  const cfIp = headers['cf-connecting-ip']
-  if (cfIp && isValidIp(cfIp)) {
-    return cfIp.trim()
-  }
+  // In production deployments (e.g. behind Cloudflare), proxy headers are authoritative.
+  // In direct-access or non-proxy environments, headers can be spoofed by callers and should only
+  // be trusted when explicitly configured via TRUST_PROXY_HEADERS === 'true'.
+  const isProduction = process.env.NODE_ENV === 'production'
+  const trustProxy = process.env.TRUST_PROXY_HEADERS === 'true' || isProduction
 
-  // Trusted proxy real-ip
-  const realIp = headers['x-real-ip']
-  if (realIp && isValidIp(realIp)) {
-    return realIp.trim()
-  }
+  if (trustProxy) {
+    // Cloudflare edge authoritative connecting IP
+    const cfIp = headers['cf-connecting-ip']
+    if (cfIp && isValidIp(cfIp)) {
+      return cfIp.trim()
+    }
 
-  // Forwarded-for (use leftmost client IP)
-  const forwarded = headers['x-forwarded-for']
-  if (forwarded) {
-    const candidate = forwarded.split(',')[0].trim()
-    if (isValidIp(candidate)) {
-      return candidate
+    // Trusted reverse proxy IP
+    const realIp = headers['x-real-ip']
+    if (realIp && isValidIp(realIp)) {
+      return realIp.trim()
+    }
+
+    // Standard forwarded-for header (leftmost client IP)
+    const forwarded = headers['x-forwarded-for']
+    if (forwarded) {
+      const candidate = forwarded.split(',')[0].trim()
+      if (isValidIp(candidate)) {
+        return candidate
+      }
     }
   }
 
