@@ -37,13 +37,7 @@ function AdminLoginPage() {
 
     try {
       if (!supabase) {
-        // Local preview bypass for local development without configured Supabase instance
-        if (email === 'admin@dropyoursaas.co.za' && password === 'admin123') {
-          sessionStorage.setItem('mock_admin_session', 'true')
-          navigate({ to: '/admin' })
-          return
-        }
-        throw new Error('Supabase environment variables not configured. Set VITE_SUPABASE_URL or use admin@dropyoursaas.co.za / admin123 for local UI preview.')
+        throw new Error('Supabase authentication service is not configured.')
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
