@@ -13,7 +13,7 @@ export const Route = createFileRoute('/categories/$slug')({
 
     const allProducts = await getPublishedProducts()
     const categoryProducts = allProducts.filter(
-      (p) => p.category_id === category.id || p.category?.slug === category.slug
+      (p) => p.primary_category_id === category.id || p.primary_category?.slug === category.slug
     )
 
     return {
@@ -32,9 +32,9 @@ export const Route = createFileRoute('/categories/$slug')({
     const canonical = `https://dropyoursaas.co.za/categories/${category.slug}`
 
     const breadcrumbs = [
-      { name: 'Home', item: 'https://dropyoursaas.co.za/' },
-      { name: 'Categories', item: 'https://dropyoursaas.co.za/discover' },
-      { name: category.name, item: canonical },
+      { name: 'Home', url: 'https://dropyoursaas.co.za/' },
+      { name: 'Categories', url: 'https://dropyoursaas.co.za/discover' },
+      { name: category.name, url: canonical },
     ]
 
     return {

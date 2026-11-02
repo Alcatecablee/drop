@@ -34,6 +34,7 @@ export interface Category {
   description?: string | null
   meta_title?: string | null
   meta_description?: string | null
+  is_active: boolean
   display_order: number
   created_at: string
   updated_at: string

@@ -103,7 +103,7 @@ function AdminDashboardPage() {
         setSubmissions([
           {
             id: 'sub-sample-1',
-            name: 'PayFlex Africa',
+            product_name: 'PayFlex Africa',
             website_url: 'https://payflex.co.za',
             tagline: 'Buy now pay later for South African online stores',
             description: 'Customer installment payment option for ecommerce merchants with zero interest.',
@@ -111,13 +111,12 @@ function AdminDashboardPage() {
             country_built_id: countries[0]?.id || '',
             countries_served_ids: [countries[0]?.id || ''],
             pricing_model: 'usage_based',
-            pricing_details: 'Merchant fee per completed order',
             submitter_name: 'Devin Marks',
             submitter_email: 'devin@payflex.co.za',
-            submitter_relationship: 'founder',
-            submission_status: 'pending',
-            rejection_reason: null,
-            ip_hash: 'f9a2b8e4...',
+            is_founder: true,
+            status: 'pending',
+            admin_notes: 'Merchant fee per completed order',
+            submitted_ip_hash: 'f9a2b8e4...',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
@@ -144,13 +143,13 @@ function AdminDashboardPage() {
           p_submission_id: sub.id,
         })
         if (error) throw error
-        setActionMessage(`Approved "${sub.name}". Draft product created (ID: ${newProductId}).`)
+        setActionMessage(`Approved "${sub.product_name}". Draft product created (ID: ${newProductId}).`)
       } else {
         // Local preview simulation
         setSubmissions((prev) =>
-          prev.map((s) => (s.id === sub.id ? { ...s, submission_status: 'approved' } : s))
+          prev.map((s) => (s.id === sub.id ? { ...s, status: 'approved' } : s))
         )
-        setActionMessage(`[Preview Mode] Approved "${sub.name}" as draft.`)
+        setActionMessage(`[Preview Mode] Approved "${sub.product_name}" as draft.`)
       }
       loadData()
     } catch (err: any) {
@@ -172,11 +171,11 @@ function AdminDashboardPage() {
       } else {
         setSubmissions((prev) =>
           prev.map((s) =>
-            s.id === sub.id ? { ...s, submission_status: 'rejected', rejection_reason: reason } : s
+            s.id === sub.id ? { ...s, status: 'rejected', admin_notes: reason } : s
           )
         )
       }
-      setActionMessage(`Rejected "${sub.name}".`)
+      setActionMessage(`Rejected "${sub.product_name}".`)
       loadData()
     } catch (err: any) {
       setActionMessage(`Error rejecting submission: ${err.message}`)
@@ -235,7 +234,7 @@ function AdminDashboardPage() {
     }
   }
 
-  const filteredSubmissions = submissions.filter((s) => s.submission_status === submissionTab)
+  const filteredSubmissions = submissions.filter((s) => s.status === submissionTab)
   const filteredProducts = products.filter((p) => {
     if (catalogFilter === 'draft') return p.publication_status === 'draft'
     if (catalogFilter === 'published') return p.publication_status === 'published'
@@ -304,7 +303,7 @@ function AdminDashboardPage() {
               : 'border-transparent text-neutral-500 hover:text-neutral-900'
           }`}
         >
-          Submission Queue ({submissions.filter((s) => s.submission_status === 'pending').length} pending)
+          Submission Queue ({submissions.filter((s) => s.status === 'pending').length} pending)
         </button>
         <button
           onClick={() => setActiveTab('catalog')}
@@ -324,7 +323,7 @@ function AdminDashboardPage() {
           {/* Sub tabs */}
           <div className="flex gap-2 mb-6">
             {(['pending', 'approved', 'rejected', 'spam'] as const).map((tab) => {
-              const count = submissions.filter((s) => s.submission_status === tab).length
+              const count = submissions.filter((s) => s.status === tab).length
               return (
                 <button
                   key={tab}
@@ -352,7 +351,7 @@ function AdminDashboardPage() {
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-neutral-100 pb-4 mb-4">
                     <div>
                       <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-semibold text-neutral-900">{sub.name}</h3>
+                        <h3 className="text-lg font-semibold text-neutral-900">{sub.product_name}</h3>
                         <a
                           href={sub.website_url}
                           target="_blank"
@@ -367,7 +366,7 @@ function AdminDashboardPage() {
 
                     <div className="text-right text-xs font-mono text-neutral-500">
                       <div>Submitted: {new Date(sub.created_at).toLocaleDateString()}</div>
-                      <div>Relationship: {sub.submitter_relationship}</div>
+                      <div>Role: {sub.is_founder ? 'Founder' : 'Contributor'}</div>
                     </div>
                   </div>
 
@@ -390,11 +389,11 @@ function AdminDashboardPage() {
                     </div>
                     <div>
                       <span className="text-neutral-400 block">Status:</span>
-                      <span className="uppercase font-semibold">{sub.submission_status}</span>
+                      <span className="uppercase font-semibold">{sub.status}</span>
                     </div>
                   </div>
 
-                  {sub.submission_status === 'pending' && (
+                  {sub.status === 'pending' && (
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleApproveSubmission(sub)}
@@ -473,7 +472,7 @@ function AdminDashboardPage() {
                         {p.website_url}
                       </a>
                     </td>
-                    <td className="p-3 text-neutral-700">{p.category?.name || '—'}</td>
+                    <td className="p-3 text-neutral-700">{p.primary_category?.name || '—'}</td>
                     <td className="p-3 text-neutral-700">
                       {p.country_built?.name} ({p.country_built?.iso_code_2})
                     </td>

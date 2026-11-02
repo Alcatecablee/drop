@@ -14,8 +14,8 @@ export const Route = createFileRoute('/resources/')({
     const canonical = 'https://dropyoursaas.co.za/resources'
 
     const breadcrumbs = [
-      { name: 'Home', item: 'https://dropyoursaas.co.za/' },
-      { name: 'Buyer Guides', item: canonical },
+      { name: 'Home', url: 'https://dropyoursaas.co.za/' },
+      { name: 'Buyer Guides', url: canonical },
     ]
 
     return {

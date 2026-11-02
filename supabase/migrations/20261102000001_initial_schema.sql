@@ -57,6 +57,7 @@ CREATE TABLE public.categories (
     description TEXT,
     meta_title VARCHAR(150),
     meta_description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT true,
     display_order INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -373,3 +374,242 @@ CREATE POLICY "Admins manage user roles"
     TO authenticated
     USING (public.is_admin())
     WITH CHECK (public.is_admin());
+
+
+-- 8. Atomic Stored Procedures & Server Functions
+
+-- Atomic Server-Only Submission with Transaction Advisory Lock Rate Limiting
+CREATE OR REPLACE FUNCTION public.submit_product_with_rate_limit(
+    p_product_name VARCHAR(150),
+    p_website_url VARCHAR(500),
+    p_tagline VARCHAR(250),
+    p_description TEXT,
+    p_category_id UUID,
+    p_country_built_id UUID,
+    p_countries_served_ids UUID[],
+    p_pricing_model public.pricing_model_enum,
+    p_pricing_details TEXT,
+    p_submitter_name VARCHAR(150),
+    p_submitter_email VARCHAR(150),
+    p_is_founder BOOLEAN,
+    p_ip_hash VARCHAR(128),
+    p_max_per_hour INT DEFAULT 3
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_recent_count INT;
+    v_new_id UUID;
+    v_clean_domain TEXT;
+BEGIN
+    -- 1. Acquire transaction-level advisory lock on IP hash to prevent concurrent IP spam race conditions
+    PERFORM pg_advisory_xact_lock(hashtext('ip:' || p_ip_hash));
+
+    -- Rate limit check: max submissions per hour for this IP hash
+    SELECT COUNT(*) INTO v_recent_count
+    FROM public.submissions
+    WHERE submitted_ip_hash = p_ip_hash
+      AND created_at >= NOW() - INTERVAL '1 hour';
+
+    IF v_recent_count >= p_max_per_hour THEN
+        RAISE EXCEPTION 'RATE_LIMIT_EXCEEDED: Maximum of % submissions per hour allowed per IP address.', p_max_per_hour
+            USING ERRCODE = 'P0001';
+    END IF;
+
+    -- Extract clean domain for duplicate check
+    v_clean_domain := regexp_replace(regexp_replace(lower(p_website_url), '^https?://(www\.)?', ''), '/.*$', '');
+
+    IF v_clean_domain = '' THEN
+        RAISE EXCEPTION 'INVALID_DOMAIN: Cannot extract valid domain from URL.' USING ERRCODE = '22023';
+    END IF;
+
+    -- 2. Acquire transaction-level advisory lock on domain to prevent concurrent domain submission races across multiple IPs
+    PERFORM pg_advisory_xact_lock(hashtext('domain:' || v_clean_domain));
+
+    -- Check if domain already exists in products
+    IF EXISTS (
+        SELECT 1 FROM public.products
+        WHERE regexp_replace(regexp_replace(lower(website_url), '^https?://(www\.)?', ''), '/.*$', '') = v_clean_domain
+    ) THEN
+        RAISE EXCEPTION 'DUPLICATE_DOMAIN: A software listing for domain "%" already exists.', v_clean_domain
+            USING ERRCODE = '23505';
+    END IF;
+
+    -- Check if domain already has a pending submission
+    IF EXISTS (
+        SELECT 1 FROM public.submissions
+        WHERE status = 'pending'
+          AND regexp_replace(regexp_replace(lower(website_url), '^https?://(www\.)?', ''), '/.*$', '') = v_clean_domain
+    ) THEN
+        RAISE EXCEPTION 'DUPLICATE_SUBMISSION: A submission for domain "%" is already pending editorial moderation.', v_clean_domain
+            USING ERRCODE = '23505';
+    END IF;
+
+    -- Insert into submissions
+    INSERT INTO public.submissions (
+        product_name,
+        website_url,
+        tagline,
+        description,
+        category_id,
+        country_built_id,
+        countries_served_ids,
+        pricing_model,
+        submitter_name,
+        submitter_email,
+        is_founder,
+        submitted_ip_hash,
+        status,
+        admin_notes
+    ) VALUES (
+        p_product_name,
+        p_website_url,
+        p_tagline,
+        p_description,
+        p_category_id,
+        p_country_built_id,
+        p_countries_served_ids,
+        p_pricing_model,
+        p_submitter_name,
+        p_submitter_email,
+        p_is_founder,
+        p_ip_hash,
+        'pending',
+        p_pricing_details
+    ) RETURNING id INTO v_new_id;
+
+    RETURN v_new_id;
+END;
+$$;
+
+-- Revoke execution on submission RPC; ONLY service_role may execute (prevents bypass by anon or authenticated users)
+REVOKE ALL ON FUNCTION public.submit_product_with_rate_limit(
+    VARCHAR, VARCHAR, VARCHAR, TEXT, UUID, UUID, UUID[],
+    public.pricing_model_enum, TEXT, VARCHAR, VARCHAR, BOOLEAN, VARCHAR, INT
+) FROM PUBLIC;
+
+REVOKE ALL ON FUNCTION public.submit_product_with_rate_limit(
+    VARCHAR, VARCHAR, VARCHAR, TEXT, UUID, UUID, UUID[],
+    public.pricing_model_enum, TEXT, VARCHAR, VARCHAR, BOOLEAN, VARCHAR, INT
+) FROM anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION public.submit_product_with_rate_limit(
+    VARCHAR, VARCHAR, VARCHAR, TEXT, UUID, UUID, UUID[],
+    public.pricing_model_enum, TEXT, VARCHAR, VARCHAR, BOOLEAN, VARCHAR, INT
+) TO service_role;
+
+-- Partial unique index on pending submissions to eliminate race condition duplicates at storage level
+CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_pending_clean_domain
+ON public.submissions (regexp_replace(regexp_replace(lower(website_url), '^https?://(www\.)?', ''), '/.*$', ''))
+WHERE status = 'pending';
+
+-- Admin Moderation: Approve submission to unverified draft product
+CREATE OR REPLACE FUNCTION public.approve_submission_to_draft(p_submission_id UUID)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    sub RECORD;
+    v_new_product_id UUID;
+    v_slug TEXT;
+    v_country_id UUID;
+BEGIN
+    IF NOT public.is_admin() THEN
+        RAISE EXCEPTION 'Forbidden: administrator role required' USING ERRCODE = '42501';
+    END IF;
+
+    SELECT * INTO sub FROM public.submissions WHERE id = p_submission_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Submission not found: %', p_submission_id;
+    END IF;
+
+    v_slug := lower(regexp_replace(regexp_replace(sub.product_name, '[^a-zA-Z0-9\s-]', '', 'g'), '\s+', '-', 'g'));
+
+    INSERT INTO public.products (
+        name,
+        slug,
+        tagline,
+        description,
+        website_url,
+        primary_category_id,
+        country_built_id,
+        builder_name,
+        is_founder_submitted,
+        pricing_model,
+        pricing_details,
+        platform_type,
+        publication_status,
+        verification_status,
+        operational_status,
+        last_verified_at,
+        published_at
+    ) VALUES (
+        sub.product_name,
+        v_slug,
+        sub.tagline,
+        sub.description,
+        sub.website_url,
+        sub.category_id,
+        sub.country_built_id,
+        sub.submitter_name,
+        sub.is_founder,
+        COALESCE(sub.pricing_model, 'contact_for_pricing'),
+        sub.admin_notes,
+        'Web App',
+        'draft',
+        'unverified',
+        'active',
+        NULL,
+        NULL
+    ) RETURNING id INTO v_new_product_id;
+
+    -- Map served countries
+    IF sub.countries_served_ids IS NOT NULL THEN
+        FOREACH v_country_id IN ARRAY sub.countries_served_ids LOOP
+            INSERT INTO public.product_countries_served (product_id, country_id)
+            VALUES (v_new_product_id, v_country_id)
+            ON CONFLICT DO NOTHING;
+        END LOOP;
+    END IF;
+
+    -- Mark submission approved
+    UPDATE public.submissions
+    SET status = 'approved', updated_at = NOW()
+    WHERE id = p_submission_id;
+
+    RETURN v_new_product_id;
+END;
+$$;
+
+-- Admin Moderation: Reject submission with reason
+CREATE OR REPLACE FUNCTION public.reject_submission(p_submission_id UUID, p_reason TEXT DEFAULT NULL)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NOT public.is_admin() THEN
+        RAISE EXCEPTION 'Forbidden: administrator role required' USING ERRCODE = '42501';
+    END IF;
+
+    UPDATE public.submissions
+    SET status = 'rejected',
+        admin_notes = p_reason,
+        updated_at = NOW()
+    WHERE id = p_submission_id;
+
+    RETURN true;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.approve_submission_to_draft(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.approve_submission_to_draft(UUID) TO authenticated;
+
+REVOKE ALL ON FUNCTION public.reject_submission(UUID, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.reject_submission(UUID, TEXT) TO authenticated;

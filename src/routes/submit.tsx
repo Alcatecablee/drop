@@ -4,6 +4,7 @@ import { getActiveCountries, getCategories } from '../lib/supabase'
 import { submitProductServerFn } from '../lib/server-submit'
 import type { PricingModel } from '../lib/types'
 import { buildBreadcrumbJsonLd } from '../lib/seo'
+import { TurnstileWidget } from '../components/TurnstileWidget'
 
 export const Route = createFileRoute('/submit')({
   loader: async () => {
@@ -20,8 +21,8 @@ export const Route = createFileRoute('/submit')({
     const canonical = 'https://dropyoursaas.co.za/submit'
 
     const breadcrumbs = [
-      { name: 'Home', item: 'https://dropyoursaas.co.za/' },
-      { name: 'Submit Software', item: canonical },
+      { name: 'Home', url: 'https://dropyoursaas.co.za/' },
+      { name: 'Submit Software', url: canonical },
     ]
 
     return {
@@ -76,6 +77,8 @@ function SubmitPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionSuccess, setSubmissionSuccess] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState<string>('')
+  const [turnstileResetKey, setTurnstileResetKey] = useState<number>(0)
 
   const handleCountryServedToggle = (id: string) => {
     setFormState((prev) => {
@@ -137,17 +140,31 @@ function SubmitPage() {
       return
     }
 
+    if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErrorMessage('Please complete the bot verification challenge before submitting.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      const result = await submitProductServerFn({ data: formState })
+      const result = await submitProductServerFn({
+        data: {
+          ...formState,
+          turnstile_token: turnstileToken || undefined,
+        },
+      })
       if (result.success) {
         setSubmissionSuccess(true)
       } else {
         setErrorMessage(result.message || 'Submission could not be completed.')
+        setTurnstileResetKey((k) => k + 1)
+        setTurnstileToken('')
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'An error occurred while submitting. Please try again.')
+      setTurnstileResetKey((k) => k + 1)
+      setTurnstileToken('')
     } finally {
       setIsSubmitting(false)
     }
@@ -471,6 +488,23 @@ function SubmitPage() {
               </select>
             </div>
           </div>
+        </div>
+
+        {/* Section 4: Bot & Integrity Verification */}
+        <div className="space-y-4">
+          <h2 className="text-xs font-mono uppercase tracking-wider text-neutral-500 pb-2 border-b border-neutral-200">
+            04. Bot Verification
+          </h2>
+
+          <TurnstileWidget
+            onVerify={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken('')}
+            onError={() => {
+              setTurnstileToken('')
+              setErrorMessage('Bot verification failed. Please try again.')
+            }}
+            resetKey={turnstileResetKey}
+          />
         </div>
 
         <div className="pt-4 border-t border-neutral-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
