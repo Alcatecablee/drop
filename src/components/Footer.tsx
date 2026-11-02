@@ -8,15 +8,18 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Column 1: Brand & Editorial Mission */}
           <div className="md:col-span-2 pr-4">
-            <Link to="/" className="text-base font-bold text-[#111111] tracking-tight mb-3 inline-block">
-              DropYourSaaS
+            <Link to="/" className="text-base font-bold text-[#111111] tracking-tight mb-1 inline-block">
+              OriginIndex
             </Link>
+            <p className="text-xs font-mono uppercase tracking-wider text-neutral-500 mb-3">
+              Discover software. Trace its origin.
+            </p>
             <p className="text-xs sm:text-sm leading-relaxed text-[#555552] mb-4 max-w-md">
-              An independent African software discovery index and buyer research publication. We document software
-              engineered across African tech ecosystems, tracking factual pricing models, regional availability, and builder attribution.
+              An independent index of software products, engineering teams, and technology companies built across Africa.
+              We document factual pricing models, regional compliance rails, and verified builder provenance.
             </p>
             <p className="text-xs text-[#888885]">
-              Editorial Policy: Listings are fact-checked against live production domains and public rate cards before verification.
+              Editorial Policy: Listings are verified against live production domains, public rate cards, and builder attribution before publication.
             </p>
           </div>
 

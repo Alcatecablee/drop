@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 export const Route = createFileRoute('/admin/login')({
   head: () => ({
     meta: [
-      { title: 'Admin Login | DropYourSaaS' },
+      { title: 'OriginIndex Editorial Desk Login' },
       { name: 'robots', content: 'noindex, nofollow' },
     ],
   }),

@@ -16,13 +16,13 @@ export const Route = createFileRoute('/')({
   head: () => {
     return {
       meta: [
-        { title: 'DropYourSaaS – African Software Directory & Buyer Guides' },
+        { title: 'OriginIndex — Discover Software. Trace Its Origin.' },
         {
           name: 'description',
-          content: 'Discover software built in and serving African markets. Compare pricing models, regional availability, payment integrations, and founder provenance.',
+          content: 'An independent index of software products, engineering teams, and technology companies built across Africa. Factual pricing, regional availability, and verified builder provenance.',
         },
-        { property: 'og:title', content: 'DropYourSaaS – African Software Directory & Buyer Guides' },
-        { property: 'og:description', content: 'Discover software built in and serving African markets. Fact-checked pricing, regional availability, and builder attribution.' },
+        { property: 'og:title', content: 'OriginIndex — Discover Software. Trace Its Origin.' },
+        { property: 'og:description', content: 'An independent index of software products, engineering teams, and technology companies built across Africa. Factual pricing, regional availability, and verified builder provenance.' },
         { property: 'og:url', content: 'https://dropyoursaas.co.za/' },
         { name: 'twitter:card', content: 'summary' },
       ],
@@ -56,18 +56,22 @@ function HomePage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
       {/* Hero Section */}
       <section className="max-w-3xl mb-16">
+        <div className="font-mono text-xs uppercase tracking-wider text-neutral-500 mb-3">
+          Independent African Software Discovery
+        </div>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#111111] leading-tight mb-4">
-          The African Software Directory &amp; Buyer Index
+          Discover software. Trace its origin.
         </h1>
         <p className="text-base sm:text-lg text-[#555552] leading-relaxed mb-8">
-          An independent publication tracking software engineered in African tech hubs and tools delivering regional payment and compliance infrastructure. Factual pricing, supported rails, and builder provenance.
+          An independent index of software products, engineering teams, and technology companies built across Africa.
+          Factual pricing, regional payment rails, and verified builder provenance.
         </p>
 
         {/* Global Search Bar */}
         <form onSubmit={handleSearch} className="flex gap-2 max-w-xl">
           <input
             type="text"
-            placeholder="Search software by name, category, or keyword..."
+            placeholder="Search software by name, origin country, category, or stack..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1 px-4 py-3 border border-[#E5E5E3] text-sm text-[#111111] focus:outline-none focus:border-[#111111] placeholder-[#888885]"
@@ -76,7 +80,7 @@ function HomePage() {
             type="submit"
             className="px-6 py-3 bg-[#111111] text-white text-sm font-medium hover:bg-neutral-800 transition-colors"
           >
-            Search
+            Search Index
           </button>
         </form>
       </section>
@@ -137,13 +141,14 @@ function HomePage() {
         {products.length === 0 ? (
           <div className="border border-neutral-200 bg-[#F8F8F7] p-10 text-center">
             <div className="text-xs font-mono uppercase tracking-wider text-neutral-500 mb-2">
-              Catalogue Staging
+              OriginIndex Editorial Staging
             </div>
             <h3 className="text-base font-semibold text-neutral-900 mb-2">
-              Candidate Audits in Progress
+              Initial Candidate Audits in Progress
             </h3>
             <p className="text-xs text-neutral-600 max-w-lg mx-auto mb-6 leading-relaxed">
-              DropYourSaaS has staged 20 initial software candidates across South Africa, Nigeria, Kenya, Egypt, and Ghana. Listings are published sequentially after manual verification of active HTTPS endpoints, verifiable pricing tiers, and builder provenance.
+              OriginIndex has staged 20 initial software candidates across South Africa, Nigeria, Kenya, Egypt, and Zimbabwe.
+              Entries are published sequentially following editorial verification of live domain operations, factual commercial pricing tiers, and direct builder attribution.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link
@@ -156,7 +161,7 @@ function HomePage() {
                 to="/resources"
                 className="text-xs font-mono uppercase tracking-wider px-4 py-2 border border-neutral-300 text-neutral-700 hover:border-black transition-colors"
               >
-                Read Technical Buyer Guides
+                Read Buyer Guides &amp; Methodology
               </Link>
             </div>
           </div>

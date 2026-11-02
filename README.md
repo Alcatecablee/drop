@@ -1,20 +1,27 @@
-# DropYourSaaS (`dropyoursaas.co.za`)
+# OriginIndex
 
-An independent African software discovery publication and directory built with **TanStack Start SSR**, **React 19**, **TypeScript**, **Tailwind CSS**, and **Supabase (PostgreSQL & Auth)**.
+> **Discover software. Trace its origin.**  
+> An independent index of software products, engineering teams, and technology companies built across Africa.
+
+Built with **TanStack Start SSR**, **React 19**, **TypeScript**, **Tailwind CSS**, and **Supabase (PostgreSQL & Auth)**.
 
 ---
 
-## 1. Architectural Highlights
+## 1. Core Thesis & Editorial Architecture
 
-- **Server-Side Rendering (SSR):** Powered by TanStack Start on Vite 6 with server-side metadata generation and stream rendering.
-- **Zero AI Slop UI:** Clean, content-first typography, 1px solid hairline borders, monospaced tabular accents, zero gratuitous gradient banners, colored icon circles, or vanity stat counters.
-- **Dual Provenance Model:** Explicit separation of engineering origin (`country_built_id`) from regional market availability (`product_countries_served`).
-- **Strict Verification Protocol:** Candidate entries are staged as unverified drafts (`verification_status = 'unverified'`, `last_verified_at = NULL`). Verification requires human check of active HTTPS URLs, public pricing transparency, and verified builder attribution.
+OriginIndex moves beyond generic software directories by enforcing a rigorous editorial separation between **engineering origin** and **market availability**:
+
+- **Dual Provenance Model:** Explicit distinction between where software was engineered (`country_built_id`) versus the regional compliance and payment rails it natively supports (`product_countries_served`).
+- **Strict Verification Protocol:** Candidate entries are staged as unverified drafts (`verification_status = 'unverified'`, `last_verified_at = NULL`). Verification requires human inspection of active HTTPS endpoints, verifiable pricing models, and builder attribution before public listing.
+- **Zero AI Slop Design:** Clean, content-first typography, 1px solid hairline borders, monospaced tabular accents, zero gratuitous gradient banners, colored icon circles, or vanity stat counters.
 - **Hardened Database Security:** 
-  - Zero-argument `public.is_admin()` security definer function reading `app_roles`.
+  - Zero-argument `public.is_admin()` security definer function.
   - Column-level privilege isolation revoking `INSERT`, `UPDATE`, and `DELETE` on sensitive audit columns from public roles.
-  - Public queries routed through safe view `public.public_products` with column-level restrictions.
-  - Moderation queue actions restricted to atomic RPCs (`approve_submission_to_draft`, `reject_submission`).
+  - Public queries routed through safe view `public.public_products` exposing only published records.
+  - Server-only atomic submission RPC (`submit_product_with_rate_limit`) with transaction-level advisory locking on both IP hash and canonical domain.
+  - Storage-level partial unique index preventing duplicate pending submissions.
+  - Cloudflare Turnstile bot verification with lifecycle-stabilized React integration.
+  - Strict TLS certificate verification with trusted CA root validation.
 
 ---
 

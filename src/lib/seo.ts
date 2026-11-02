@@ -69,7 +69,7 @@ export function buildWebsiteJsonLd(siteUrl: string = 'https://dropyoursaas.co.za
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'DropYourSaaS',
+    name: 'OriginIndex',
     url: `${siteUrl}/`,
     potentialAction: {
       '@type': 'SearchAction',
@@ -90,7 +90,7 @@ export function buildArticleJsonLd(resource: EditorialResource, canonicalUrl: st
     description: resource.excerpt,
     author: {
       '@type': 'Organization',
-      name: resource.author_name || 'DropYourSaaS Editorial Team',
+      name: resource.author_name || 'OriginIndex Editorial Team',
     },
     datePublished: resource.published_at || resource.created_at,
     dateModified: resource.updated_at,

@@ -15,9 +15,9 @@ export const Route = createFileRoute('/submit')({
     return { countries, categories }
   },
   head: () => {
-    const title = 'Submit Software to DropYourSaaS | African Discovery Directory'
+    const title = 'Submit Software to OriginIndex | African Software Discovery'
     const description =
-      'Submit an African-built software product for editorial review, classification, and catalogue inclusion. No paid promotion or sponsored placement.'
+      'Submit an African-built software product for editorial review, classification, and index inclusion. No paid promotion or sponsored placement.'
     const canonical = 'https://dropyoursaas.co.za/submit'
 
     const breadcrumbs = [
@@ -248,7 +248,7 @@ function SubmitPage() {
           Submit Software for Indexing
         </h1>
         <p className="mt-2 text-sm text-neutral-600 max-w-2xl leading-relaxed">
-          DropYourSaaS is an independent discovery directory. We list software built in African countries or purposefully supporting African payment and compliance rails. Submissions are reviewed individually by our editorial team.
+          OriginIndex is an independent software discovery publication. We index software built in African countries or purposefully supporting African payment and compliance rails. Submissions are reviewed individually by our editorial team.
         </p>
       </div>
 

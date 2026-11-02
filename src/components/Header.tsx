@@ -7,10 +7,10 @@ export function Header() {
         <div className="flex items-center gap-8">
           <Link
             to="/"
-            className="text-lg font-bold tracking-tight text-[#111111] hover:opacity-90 flex items-center gap-2"
+            className="text-lg font-bold tracking-tight text-[#111111] hover:opacity-90 flex items-center gap-2.5"
           >
-            <span className="w-4 h-4 bg-[#111111] inline-block"></span>
-            DropYourSaaS
+            <span className="w-3.5 h-3.5 bg-[#111111] inline-block shrink-0"></span>
+            <span className="font-semibold tracking-tight">OriginIndex</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#555552]">
             <Link

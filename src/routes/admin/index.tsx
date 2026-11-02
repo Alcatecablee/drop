@@ -7,7 +7,7 @@ import type { ProductWithRelations, Submission, Country, Category, PublicationSt
 export const Route = createFileRoute('/admin/')({
   head: () => ({
     meta: [
-      { title: 'Admin Moderation & Catalog | DropYourSaaS' },
+      { title: 'OriginIndex Editorial Desk & Moderation' },
       { name: 'robots', content: 'noindex, nofollow' },
     ],
   }),

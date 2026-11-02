@@ -8,7 +8,7 @@ export const Route = createFileRoute('/resources/')({
     return { resources }
   },
   head: () => {
-    const title = 'Buyer Guides & Technical Research | DropYourSaaS'
+    const title = 'Buyer Guides & Technical Research | OriginIndex'
     const description =
       'Practical guides, pricing comparisons, and technical buyer checklists for engineering and finance teams evaluating African software solutions.'
     const canonical = 'https://dropyoursaas.co.za/resources'

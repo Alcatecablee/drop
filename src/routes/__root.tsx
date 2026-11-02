@@ -9,12 +9,12 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'DropYourSaaS – African Software Directory & Buyer Guides' },
+      { title: 'OriginIndex — Discover Software. Trace Its Origin.' },
       {
         name: 'description',
-        content: 'Discover software built in and serving African markets. Compare pricing models, regional availability, payment integrations, and founder provenance.',
+        content: 'An independent index of software products, engineering teams, and technology companies built across Africa. Factual pricing, regional availability, and verified builder provenance.',
       },
-      { property: 'og:site_name', content: 'DropYourSaaS' },
+      { property: 'og:site_name', content: 'OriginIndex' },
       { property: 'og:type', content: 'website' },
     ],
     links: [

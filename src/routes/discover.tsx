@@ -30,12 +30,12 @@ export const Route = createFileRoute('/discover')({
   },
   head: () => ({
     meta: [
-      { title: 'Browse African Software Directory | DropYourSaaS' },
+      { title: 'Browse African Software Index | OriginIndex' },
       {
         name: 'description',
         content: 'Filter and discover verified software products across African tech ecosystems by origin country, markets served, pricing model, and category.',
       },
-      { property: 'og:title', content: 'Browse African Software Directory | DropYourSaaS' },
+      { property: 'og:title', content: 'Browse African Software Index | OriginIndex' },
       { property: 'og:url', content: 'https://dropyoursaas.co.za/discover/' },
     ],
     // SEO CANONICAL RULE: Always point to canonical /discover/ regardless of filter params to avoid duplicate index bloat
