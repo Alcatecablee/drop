@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useCallback } from 'react'
 import { getActiveCountries, getCategories } from '../lib/supabase'
 import { submitProductServerFn } from '../lib/server-submit'
-import type { PricingModel } from '../lib/types'
+import type { PricingModel, AvailabilityScope } from '../lib/types'
 import { buildBreadcrumbJsonLd } from '../lib/seo'
 import { TurnstileWidget } from '../components/TurnstileWidget'
 
@@ -66,6 +66,7 @@ function SubmitPage() {
     category_id: categories[0]?.id || '',
     country_built_id: countries[0]?.id || '',
     countries_served_ids: [countries[0]?.id || ''],
+    availability_scope: 'selected_countries' as AvailabilityScope,
     pricing_model: 'freemium' as PricingModel,
     pricing_details: '',
     submitter_name: '',
@@ -97,7 +98,9 @@ function SubmitPage() {
     setFormState((prev) => {
       const exists = prev.countries_served_ids.includes(id)
       if (exists) {
-        if (prev.countries_served_ids.length === 1) return prev // Keep at least one
+        if (prev.availability_scope === 'selected_countries' && prev.countries_served_ids.length === 1) {
+          return prev // Keep at least one when scope is selected_countries
+        }
         return {
           ...prev,
           countries_served_ids: prev.countries_served_ids.filter((c) => c !== id),
@@ -145,6 +148,11 @@ function SubmitPage() {
 
     if (formState.tagline.length > 100) {
       setErrorMessage('Tagline cannot exceed 100 characters.')
+      return
+    }
+
+    if (formState.availability_scope === 'selected_countries' && formState.countries_served_ids.length === 0) {
+      setErrorMessage('Please select at least one African market served.')
       return
     }
 
@@ -379,34 +387,105 @@ function SubmitPage() {
             </div>
           </div>
 
+          {/* Availability Scope */}
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-neutral-700 mb-2">
-              African Markets Served (Select all that apply) <span className="text-red-600">*</span>
+              Availability Scope <span className="text-red-600">*</span>
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {countries.map((c) => {
-                const isChecked = formState.countries_served_ids.includes(c.id)
-                return (
-                  <label
-                    key={c.id}
-                    className={`flex items-center space-x-2 p-2 border text-xs cursor-pointer select-none transition-colors ${
-                      isChecked
-                        ? 'border-neutral-900 bg-neutral-100 font-medium'
-                        : 'border-neutral-200 hover:border-neutral-300'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => handleCountryServedToggle(c.id)}
-                      className="accent-black"
-                    />
-                    <span>{c.name}</span>
-                  </label>
-                )
-              })}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <label
+                className={`p-3 border text-xs cursor-pointer select-none transition-colors ${
+                  formState.availability_scope === 'selected_countries'
+                    ? 'border-neutral-900 bg-neutral-100 font-medium'
+                    : 'border-neutral-200 hover:border-neutral-300'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <input
+                    type="radio"
+                    name="availability_scope"
+                    value="selected_countries"
+                    checked={formState.availability_scope === 'selected_countries'}
+                    onChange={() =>
+                      setFormState({
+                        ...formState,
+                        availability_scope: 'selected_countries',
+                        countries_served_ids:
+                          formState.countries_served_ids.length > 0
+                            ? formState.countries_served_ids
+                            : [countries[0]?.id || ''],
+                      })
+                    }
+                    className="accent-black"
+                  />
+                  <span className="font-semibold text-neutral-900">Selected African Markets</span>
+                </div>
+                <p className="text-[11px] text-neutral-500 pl-5 leading-normal">
+                  Specifically localized, marketed, or supported in identified African countries.
+                </p>
+              </label>
+
+              <label
+                className={`p-3 border text-xs cursor-pointer select-none transition-colors ${
+                  formState.availability_scope === 'global'
+                    ? 'border-neutral-900 bg-neutral-100 font-medium'
+                    : 'border-neutral-200 hover:border-neutral-300'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <input
+                    type="radio"
+                    name="availability_scope"
+                    value="global"
+                    checked={formState.availability_scope === 'global'}
+                    onChange={() =>
+                      setFormState({
+                        ...formState,
+                        availability_scope: 'global',
+                        countries_served_ids: [],
+                      })
+                    }
+                    className="accent-black"
+                  />
+                  <span className="font-semibold text-neutral-900">Global Web Service</span>
+                </div>
+                <p className="text-[11px] text-neutral-500 pl-5 leading-normal">
+                  Open worldwide via browser or API without regional country barriers.
+                </p>
+              </label>
             </div>
           </div>
+
+          {formState.availability_scope === 'selected_countries' && (
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-wider text-neutral-700 mb-2">
+                African Markets Served (Select all that apply) <span className="text-red-600">*</span>
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {countries.map((c) => {
+                  const isChecked = formState.countries_served_ids.includes(c.id)
+                  return (
+                    <label
+                      key={c.id}
+                      className={`flex items-center space-x-2 p-2 border text-xs cursor-pointer select-none transition-colors ${
+                        isChecked
+                          ? 'border-neutral-900 bg-neutral-100 font-medium'
+                          : 'border-neutral-200 hover:border-neutral-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleCountryServedToggle(c.id)}
+                        className="accent-black"
+                      />
+                      <span>{c.name}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Section 2: Pricing Model */}

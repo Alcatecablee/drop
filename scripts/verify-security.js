@@ -73,7 +73,7 @@ async function runTests() {
 
     // 3. RPC PRIVILEGE LOCKDOWN TESTS
     console.log('\n--- 3. RPC Privilege Lockdown Tests ---')
-    const rpcSignature = 'public.submit_product_with_rate_limit(varchar, varchar, varchar, text, uuid, uuid, uuid[], public.pricing_model_enum, text, varchar, varchar, boolean, varchar, int)'
+    const rpcSignature = 'public.submit_product_with_rate_limit(varchar, varchar, varchar, text, uuid, uuid, uuid[], public.pricing_model_enum, text, varchar, varchar, boolean, varchar, int, public.availability_scope_enum)'
 
     const anonPriv = await client.query(
       `SELECT has_function_privilege('anon', '${rpcSignature}', 'EXECUTE') AS has_priv;`
@@ -328,6 +328,27 @@ async function runTests() {
       if (err.message.includes('INVALID_COUNTRY_SERVED')) emptyServedBlocked = true
     }
     assert(emptyServedBlocked, 'Submission with empty served countries array ([]) blocked with INVALID_COUNTRY_SERVED via cardinality()')
+
+    // 8b. AVAILABILITY SCOPE VALIDATION TESTS
+    console.log('\n--- 8b. Availability Scope Validation Tests ---')
+    const globalDomain = `https://global-test-${Date.now()}.org`
+    const globalRes = await client.query(
+      `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10, 'global');`,
+      ['Global App Test', globalDomain, 'Tag', 'Desc', catId, countryId, [], 'free', null, 'T', 't@e.co', true, 'ip_scope_1']
+    )
+    assert(globalRes.rows[0].submit_product_with_rate_limit !== null, 'Submission with scope "global" and empty served countries ([]) succeeds')
+    await client.query(`DELETE FROM public.submissions WHERE website_url = $1;`, [globalDomain])
+
+    let selectedEmptyScopeBlocked = false
+    try {
+      await client.query(
+        `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10, 'selected_countries');`,
+        ['Selected App Test', `https://selected-empty-${Date.now()}.org`, 'Tag', 'Desc', catId, countryId, [], 'free', null, 'T', 't@e.co', true, 'ip_scope_2']
+      )
+    } catch (err) {
+      if (err.message.includes('INVALID_COUNTRY_SERVED')) selectedEmptyScopeBlocked = true
+    }
+    assert(selectedEmptyScopeBlocked, 'Submission with explicit scope "selected_countries" and empty served countries blocked with INVALID_COUNTRY_SERVED')
 
     // 9. CANONICAL DOMAIN NORMALIZATION (QUERY & FRAGMENT STRIPPING) TESTS
     console.log('\n--- 9. URL Normalization & Query/Fragment Stripping Tests ---')

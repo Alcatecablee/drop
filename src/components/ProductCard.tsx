@@ -61,11 +61,15 @@ export function ProductCard({ product }: ProductCardProps) {
           <span>
             Built in <strong className="font-medium text-[#111111]">{product.country_built?.name || 'Africa'}</strong>
           </span>
-          {servedCount > 1 && (
+          {product.availability_scope === 'global' ? (
+            <span className="text-[#555552] border border-[#E5E5E3] px-1.5 py-0.5 font-mono text-[10px] uppercase">
+              Global
+            </span>
+          ) : servedCount > 1 ? (
             <span className="text-[#888885]">
               · Serves {servedCount} countries
             </span>
-          )}
+          ) : null}
         </div>
 
         <span className="font-mono text-[11px] font-medium text-[#111111]">

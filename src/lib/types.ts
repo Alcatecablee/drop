@@ -2,6 +2,7 @@ export type PublicationStatus = 'draft' | 'published' | 'archived'
 export type VerificationStatus = 'unverified' | 'community_submitted' | 'verified'
 export type OperationalStatus = 'active' | 'beta' | 'discontinued'
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'spam'
+export type AvailabilityScope = 'global' | 'selected_countries' | 'unverified'
 export type AppRole = 'admin'
 
 export type PricingModel =
@@ -70,6 +71,7 @@ export interface Product {
   publication_status: PublicationStatus
   verification_status: VerificationStatus
   operational_status: OperationalStatus
+  availability_scope: AvailabilityScope
 
   // Internal staff fields (omitted in public_products)
   verified_by?: string | null
@@ -108,6 +110,7 @@ export interface Submission {
   countries_served_ids: string[]
   category_id?: string | null
   pricing_model?: PricingModel | null
+  availability_scope?: AvailabilityScope
 
   submitter_name: string
   submitter_email: string

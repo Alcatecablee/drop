@@ -81,11 +81,15 @@ export function SpecificationSheet({ product }: SpecificationSheetProps) {
           </dd>
         </div>
 
-        {/* Countries Served */}
+        {/* Countries Served / Availability */}
         <div className="py-2.5 flex justify-between items-start gap-4">
-          <dt className="text-[#555552]">Supported Markets</dt>
+          <dt className="text-[#555552]">Market Availability</dt>
           <dd className="text-right font-medium text-[#111111] max-w-[200px]">
-            {product.countries_served && product.countries_served.length > 0 ? (
+            {product.availability_scope === 'global' ? (
+              <span className="font-mono text-xs uppercase px-1.5 py-0.5 border border-[#E5E5E3] bg-[#F8F8F7] text-[#111111]">
+                Global (Web)
+              </span>
+            ) : product.countries_served && product.countries_served.length > 0 ? (
               <div className="flex flex-wrap justify-end gap-1">
                 {product.countries_served.map((c, i) => (
                   <span key={c.id}>
@@ -101,7 +105,7 @@ export function SpecificationSheet({ product }: SpecificationSheetProps) {
                 ))}
               </div>
             ) : (
-              'Regional'
+              <span className="text-[#888885]">Unverified</span>
             )}
           </dd>
         </div>

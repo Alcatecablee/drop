@@ -203,11 +203,18 @@ function ProductProfilePage() {
               <strong className="text-[#111111] font-semibold">
                 {product.country_built?.name || 'Africa'}
               </strong>
-              . It delivers active platform support and local market integrations for customers across:{' '}
-              <span className="text-[#111111] font-medium">
-                {product.countries_served?.map((c) => c.name).join(', ') || 'Regional markets'}
-              </span>
-              .
+              .{' '}
+              {product.availability_scope === 'global' ? (
+                <>It operates as an open, globally accessible web service without regional geographical restrictions.</>
+              ) : (
+                <>
+                  It delivers active platform support and local market integrations for customers across:{' '}
+                  <span className="text-[#111111] font-medium">
+                    {product.countries_served?.map((c) => c.name).join(', ') || 'Regional markets'}
+                  </span>
+                  .
+                </>
+              )}
             </p>
           </section>
 

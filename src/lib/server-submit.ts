@@ -3,7 +3,7 @@ import { getRequestIP, getRequestHeaders } from '@tanstack/react-start/server'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'node:crypto'
 import { isIP } from 'node:net'
-import type { PricingModel } from './types'
+import type { PricingModel, AvailabilityScope } from './types'
 import { INITIAL_CANDIDATE_PRODUCTS } from './constants'
 
 export interface SubmitProductInput {
@@ -19,6 +19,7 @@ export interface SubmitProductInput {
   submitter_name: string
   submitter_email: string
   submitter_relationship: string
+  availability_scope?: AvailabilityScope
   company_fax?: string // Honeypot trap
   turnstile_token?: string
 }
@@ -170,16 +171,40 @@ export function validateSubmitProductInput(input: unknown): SubmitProductInput {
     throw new Error('Invalid country of origin identifier. Must be a valid UUID.')
   }
 
-  // 7. Countries Served IDs (Array of UUIDs, min 1)
-  if (!Array.isArray(raw.countries_served_ids) || raw.countries_served_ids.length === 0) {
-    throw new Error('At least one country served must be selected.')
+  // 7. Availability Scope & Countries Served IDs
+  let cleanScope: AvailabilityScope = 'selected_countries'
+  if (raw.availability_scope !== undefined && raw.availability_scope !== null && raw.availability_scope !== '') {
+    if (
+      typeof raw.availability_scope !== 'string' ||
+      !['global', 'selected_countries', 'unverified'].includes(raw.availability_scope)
+    ) {
+      throw new Error(`Invalid availability scope: "${raw.availability_scope}".`)
+    }
+    cleanScope = raw.availability_scope as AvailabilityScope
   }
-  if (raw.countries_served_ids.length > 54) {
-    throw new Error('Countries served cannot exceed 54 African countries.')
-  }
-  for (const cid of raw.countries_served_ids) {
-    if (typeof cid !== 'string' || !UUID_REGEX.test(cid.trim())) {
-      throw new Error(`Invalid country identifier in countries served: "${cid}".`)
+
+  const cleanServedIds: string[] = []
+  if (cleanScope === 'selected_countries') {
+    if (!Array.isArray(raw.countries_served_ids) || raw.countries_served_ids.length === 0) {
+      throw new Error('At least one country served must be selected when availability scope is selected_countries.')
+    }
+    if (raw.countries_served_ids.length > 54) {
+      throw new Error('Countries served cannot exceed 54 African countries.')
+    }
+    for (const cid of raw.countries_served_ids) {
+      if (typeof cid !== 'string' || !UUID_REGEX.test(cid.trim())) {
+        throw new Error(`Invalid country identifier in countries served: "${cid}".`)
+      }
+      cleanServedIds.push(cid.trim())
+    }
+  } else {
+    // When scope is global or unverified, served countries list is optional
+    if (Array.isArray(raw.countries_served_ids)) {
+      for (const cid of raw.countries_served_ids) {
+        if (typeof cid === 'string' && UUID_REGEX.test(cid.trim())) {
+          cleanServedIds.push(cid.trim())
+        }
+      }
     }
   }
 
@@ -238,7 +263,8 @@ export function validateSubmitProductInput(input: unknown): SubmitProductInput {
     description: raw.description.trim(),
     category_id: raw.category_id.trim(),
     country_built_id: raw.country_built_id.trim(),
-    countries_served_ids: raw.countries_served_ids.map((id) => (id as string).trim()),
+    countries_served_ids: cleanServedIds,
+    availability_scope: cleanScope,
     pricing_model: raw.pricing_model as PricingModel,
     pricing_details: cleanPricingDetails,
     submitter_name: raw.submitter_name.trim(),
@@ -385,6 +411,7 @@ export const submitProductServerFn = createServerFn({ method: 'POST' })
           p_is_founder: data.submitter_relationship === 'founder',
           p_ip_hash: ipHash,
           p_max_per_hour: 3,
+          p_availability_scope: data.availability_scope || 'selected_countries',
         }
       )
 
