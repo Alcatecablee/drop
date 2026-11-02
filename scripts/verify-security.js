@@ -49,18 +49,28 @@ async function runTests() {
     assert(totalProducts.rows[0].count === '20', 'Total staged candidate products in database === 20')
 
     const publicViewProducts = await client.query('SELECT count(*) FROM public.public_products;')
-    assert(publicViewProducts.rows[0].count === '0', 'Public view (public_products) exposes 0 draft products')
+    assert(publicViewProducts.rows[0].count === '1', 'Public view (public_products) exposes exactly 1 published product (QuickBridge)')
 
-    const draftStatuses = await client.query(`
-      SELECT DISTINCT publication_status, verification_status, last_verified_at 
-      FROM public.products;
+    const publicDrafts = await client.query("SELECT count(*) FROM public.public_products WHERE publication_status != 'published';")
+    assert(publicDrafts.rows[0].count === '0', 'Public view (public_products) strictly isolates and exposes 0 draft products')
+
+    const remainingDrafts = await client.query(`
+      SELECT count(*) 
+      FROM public.products
+      WHERE publication_status = 'draft' AND verification_status = 'unverified' AND last_verified_at IS NULL;
+    `)
+    assert(remainingDrafts.rows[0].count === '19', 'Remaining 19 candidates are strictly maintained as unverified drafts')
+
+    const verifiedRecord = await client.query(`
+      SELECT slug, publication_status, verification_status, last_verified_at 
+      FROM public.products
+      WHERE slug = 'quickbridge';
     `)
     assert(
-      draftStatuses.rows.length === 1 &&
-        draftStatuses.rows[0].publication_status === 'draft' &&
-        draftStatuses.rows[0].verification_status === 'unverified' &&
-        draftStatuses.rows[0].last_verified_at === null,
-      'All 20 candidates have publication_status=draft, verification_status=unverified, last_verified_at=NULL'
+      verifiedRecord.rows[0].publication_status === 'published' &&
+        verifiedRecord.rows[0].verification_status === 'verified' &&
+        verifiedRecord.rows[0].last_verified_at !== null,
+      'QuickBridge is officially verified and published in database'
     )
 
     // 2. TAXONOMY ACTIVE FLAGS
