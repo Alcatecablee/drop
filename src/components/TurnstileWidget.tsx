@@ -37,6 +37,17 @@ export function TurnstileWidget({
   const widgetIdRef = useRef<string | null>(null)
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
 
+  // Store latest callbacks in refs so changes in parent state do not re-trigger widget lifecycle
+  const onVerifyRef = useRef(onVerify)
+  const onExpireRef = useRef(onExpire)
+  const onErrorRef = useRef(onError)
+
+  useEffect(() => {
+    onVerifyRef.current = onVerify
+    onExpireRef.current = onExpire
+    onErrorRef.current = onError
+  })
+
   useEffect(() => {
     if (!siteKey) return
 
@@ -54,13 +65,13 @@ export function TurnstileWidget({
         const widgetId = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           callback: (token: string) => {
-            if (isMounted) onVerify(token)
+            if (isMounted) onVerifyRef.current?.(token)
           },
           'expired-callback': () => {
-            if (isMounted && onExpire) onExpire()
+            if (isMounted) onExpireRef.current?.()
           },
           'error-callback': (code?: string) => {
-            if (isMounted && onError) onError(code)
+            if (isMounted) onErrorRef.current?.(code)
           },
           theme: 'light',
         })
@@ -111,7 +122,7 @@ export function TurnstileWidget({
         } catch {}
       }
     }
-  }, [siteKey, resetKey, onVerify, onExpire, onError])
+  }, [siteKey, resetKey])
 
   if (!siteKey) {
     return (

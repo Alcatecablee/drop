@@ -1,5 +1,7 @@
 import pg from 'pg'
 import crypto from 'node:crypto'
+import fs from 'node:fs'
+import path from 'node:path'
 
 const connectionString = process.env.DATABASE_URL
 if (!connectionString) {
@@ -7,10 +9,15 @@ if (!connectionString) {
   process.exit(1)
 }
 
+const caCertPath = path.resolve('certs/supabase-root-ca.crt')
+const ssl = fs.existsSync(caCertPath)
+  ? { ca: fs.readFileSync(caCertPath, 'utf8'), rejectUnauthorized: true }
+  : { rejectUnauthorized: true }
+
 function createClient() {
   return new pg.Client({
     connectionString,
-    ssl: { rejectUnauthorized: false },
+    ssl,
   })
 }
 
@@ -273,6 +280,63 @@ async function runTests() {
       catalogDupBlocked,
       'Submission for existing catalogue product (quickbridge.app) blocked with DUPLICATE_DOMAIN'
     )
+
+    // 8. ACTIVE TAXONOMY ENFORCEMENT TESTS
+    console.log('\n--- 8. Active Taxonomy Enforcement Tests ---')
+    const fakeUuid = '00000000-0000-0000-0000-000000000000'
+
+    let fakeCatBlocked = false
+    try {
+      await client.query(
+        `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10);`,
+        ['Taxonomy Test', `https://taxonomy-${Date.now()}.co.za`, 'Tag', 'Desc', fakeUuid, countryId, [countryId], 'free', null, 'T', 't@e.co', true, 'ip_tax_1']
+      )
+    } catch (err) {
+      if (err.message.includes('INVALID_CATEGORY')) fakeCatBlocked = true
+    }
+    assert(fakeCatBlocked, 'Submission with non-existent or inactive category blocked with INVALID_CATEGORY')
+
+    let fakeCountryBuiltBlocked = false
+    try {
+      await client.query(
+        `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10);`,
+        ['Taxonomy Test 2', `https://taxonomy-2-${Date.now()}.co.za`, 'Tag', 'Desc', catId, fakeUuid, [countryId], 'free', null, 'T', 't@e.co', true, 'ip_tax_2']
+      )
+    } catch (err) {
+      if (err.message.includes('INVALID_COUNTRY_BUILT')) fakeCountryBuiltBlocked = true
+    }
+    assert(fakeCountryBuiltBlocked, 'Submission with non-existent or inactive origin country blocked with INVALID_COUNTRY_BUILT')
+
+    let fakeCountryServedBlocked = false
+    try {
+      await client.query(
+        `SELECT public.submit_product_with_rate_limit($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 10);`,
+        ['Taxonomy Test 3', `https://taxonomy-3-${Date.now()}.co.za`, 'Tag', 'Desc', catId, countryId, [fakeUuid], 'free', null, 'T', 't@e.co', true, 'ip_tax_3']
+      )
+    } catch (err) {
+      if (err.message.includes('INVALID_COUNTRY_SERVED')) fakeCountryServedBlocked = true
+    }
+    assert(fakeCountryServedBlocked, 'Submission with non-existent or inactive served country blocked with INVALID_COUNTRY_SERVED')
+
+    // 9. STRICT TLS & AUTHENTICATION REJECTION TEST (SQLSTATE 28P01)
+    console.log('\n--- 9. Strict TLS Verification & Auth Rejection (28P01) ---')
+    assert(client.connection.stream.authorized === true, 'TLS certificate chain verified and stream is authorized by Root CA')
+
+    let authFailed28P01 = false
+    const invalidAuthUrl = connectionString.replace(/:[^:@]+@/, ':invalid_password_probe@')
+    const badAuthClient = new pg.Client({
+      connectionString: invalidAuthUrl,
+      ssl,
+    })
+    try {
+      await badAuthClient.connect()
+      await badAuthClient.end()
+    } catch (err) {
+      if (err.code === '28P01') {
+        authFailed28P01 = true
+      }
+    }
+    assert(authFailed28P01, 'Fresh connection with invalid/old password rejected specifically with SQLSTATE 28P01 (invalid_password)')
 
     // Clean up test data
     await client.query('DELETE FROM public.submissions WHERE submitted_ip_hash IN ($1, $2, $3);', [

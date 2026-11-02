@@ -429,6 +429,39 @@ BEGIN
     -- 2. Acquire transaction-level advisory lock on domain to prevent concurrent domain submission races across multiple IPs
     PERFORM pg_advisory_xact_lock(hashtext('domain:' || v_clean_domain));
 
+    -- 3. Taxonomy Active Status & Existence Checks
+    IF NOT EXISTS (
+        SELECT 1 FROM public.categories
+        WHERE id = p_category_id AND is_active = true
+    ) THEN
+        RAISE EXCEPTION 'INVALID_CATEGORY: The specified category does not exist or is inactive.'
+            USING ERRCODE = '22023';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM public.countries
+        WHERE id = p_country_built_id AND is_active = true
+    ) THEN
+        RAISE EXCEPTION 'INVALID_COUNTRY_BUILT: The specified origin country does not exist or is inactive.'
+            USING ERRCODE = '22023';
+    END IF;
+
+    IF p_countries_served_ids IS NULL OR array_length(p_countries_served_ids, 1) = 0 THEN
+        RAISE EXCEPTION 'INVALID_COUNTRY_SERVED: At least one served country is required.'
+            USING ERRCODE = '22023';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM unnest(p_countries_served_ids) AS served_id
+        WHERE NOT EXISTS (
+            SELECT 1 FROM public.countries
+            WHERE id = served_id AND is_active = true
+        )
+    ) THEN
+        RAISE EXCEPTION 'INVALID_COUNTRY_SERVED: One or more selected served countries do not exist or are inactive.'
+            USING ERRCODE = '22023';
+    END IF;
+
     -- Check if domain already exists in products
     IF EXISTS (
         SELECT 1 FROM public.products

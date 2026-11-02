@@ -10,9 +10,14 @@ if (!connectionString) {
 
 console.log('Connecting to database:', connectionString.replace(/:[^:@]+@/, ':***@'))
 
+const caCertPath = path.resolve('certs/supabase-root-ca.crt')
+const ssl = fs.existsSync(caCertPath)
+  ? { ca: fs.readFileSync(caCertPath, 'utf8'), rejectUnauthorized: true }
+  : { rejectUnauthorized: true }
+
 const client = new pg.Client({
   connectionString,
-  ssl: { rejectUnauthorized: false },
+  ssl,
 })
 
 async function run() {

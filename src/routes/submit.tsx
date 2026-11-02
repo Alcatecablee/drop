@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { getActiveCountries, getCategories } from '../lib/supabase'
 import { submitProductServerFn } from '../lib/server-submit'
 import type { PricingModel } from '../lib/types'
@@ -79,6 +79,19 @@ function SubmitPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [turnstileToken, setTurnstileToken] = useState<string>('')
   const [turnstileResetKey, setTurnstileResetKey] = useState<number>(0)
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token)
+  }, [])
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('')
+  }, [])
+
+  const handleTurnstileError = useCallback(() => {
+    setTurnstileToken('')
+    setErrorMessage('Bot verification challenge failed. Please reload or try again.')
+  }, [])
 
   const handleCountryServedToggle = (id: string) => {
     setFormState((prev) => {
@@ -497,12 +510,9 @@ function SubmitPage() {
           </h2>
 
           <TurnstileWidget
-            onVerify={(token) => setTurnstileToken(token)}
-            onExpire={() => setTurnstileToken('')}
-            onError={() => {
-              setTurnstileToken('')
-              setErrorMessage('Bot verification failed. Please try again.')
-            }}
+            onVerify={handleTurnstileVerify}
+            onExpire={handleTurnstileExpire}
+            onError={handleTurnstileError}
             resetKey={turnstileResetKey}
           />
         </div>

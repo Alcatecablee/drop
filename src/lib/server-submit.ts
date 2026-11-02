@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { getRequestIP, getRequestHeaders } from '@tanstack/react-start/server'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'node:crypto'
+import { isIP } from 'node:net'
 import type { PricingModel } from './types'
 import { INITIAL_CANDIDATE_PRODUCTS } from './constants'
 
@@ -40,19 +41,21 @@ function checkDevRateLimit(ipHash: string, limit = 3, windowMs = 3600000): boole
   return false
 }
 
-const IPV4_REGEX = /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/
-const IPV6_REGEX = /^(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}$|^::1$/
+function isValidIp(ip: string): boolean {
+  const trimmed = ip.trim()
+  return isIP(trimmed) === 4 || isIP(trimmed) === 6
+}
 
 function resolveClientIp(headers: Record<string, string | undefined>, serverIp?: string): string {
   // In production behind Cloudflare, CF-Connecting-IP is set by the edge proxy
   const cfIp = headers['cf-connecting-ip']
-  if (cfIp && (IPV4_REGEX.test(cfIp.trim()) || IPV6_REGEX.test(cfIp.trim()))) {
+  if (cfIp && isValidIp(cfIp)) {
     return cfIp.trim()
   }
 
   // Trusted proxy real-ip
   const realIp = headers['x-real-ip']
-  if (realIp && (IPV4_REGEX.test(realIp.trim()) || IPV6_REGEX.test(realIp.trim()))) {
+  if (realIp && isValidIp(realIp)) {
     return realIp.trim()
   }
 
@@ -60,12 +63,12 @@ function resolveClientIp(headers: Record<string, string | undefined>, serverIp?:
   const forwarded = headers['x-forwarded-for']
   if (forwarded) {
     const candidate = forwarded.split(',')[0].trim()
-    if (IPV4_REGEX.test(candidate) || IPV6_REGEX.test(candidate)) {
+    if (isValidIp(candidate)) {
       return candidate
     }
   }
 
-  if (serverIp && (IPV4_REGEX.test(serverIp.trim()) || IPV6_REGEX.test(serverIp.trim()))) {
+  if (serverIp && isValidIp(serverIp)) {
     return serverIp.trim()
   }
 
@@ -386,6 +389,15 @@ export const submitProductServerFn = createServerFn({ method: 'POST' })
         }
         if (rpcError.message.includes('DUPLICATE_SUBMISSION')) {
           throw new Error(`A submission for domain "${domain}" is currently pending editorial review.`)
+        }
+        if (rpcError.message.includes('INVALID_CATEGORY')) {
+          throw new Error('The selected software category is invalid or inactive.')
+        }
+        if (rpcError.message.includes('INVALID_COUNTRY_BUILT')) {
+          throw new Error('The selected country of origin is invalid or inactive.')
+        }
+        if (rpcError.message.includes('INVALID_COUNTRY_SERVED')) {
+          throw new Error('One or more of the selected served countries are invalid or inactive.')
         }
         console.error('[Submission DB Error]', rpcError.message)
         throw new Error('An error occurred recording your submission. Please try again later.')
