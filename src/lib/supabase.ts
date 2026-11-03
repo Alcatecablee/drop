@@ -80,11 +80,20 @@ export async function getProductBySlug(slug: string): Promise<ProductWithRelatio
     }
 
     if (data) {
+      const { data: verRecord } = await supabase
+        .from('editorial_verifications')
+        .select('*')
+        .eq('product_id', data.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
       return {
         ...data,
         countries_served: data.product_countries_served
           ?.map((pcs: any) => pcs.country)
           .filter(Boolean) || [],
+        verification_record: verRecord || null,
       }
     }
 

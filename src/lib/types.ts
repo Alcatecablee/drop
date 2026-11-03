@@ -98,6 +98,23 @@ export interface ProductWithRelations extends Product {
   country_built?: Country
   primary_category?: Category
   countries_served?: Country[]
+  verification_record?: EditorialVerification | null
+}
+
+export interface EditorialVerification {
+  id: string
+  product_id: string
+  reviewer_name: string
+  verification_date: string
+  official_website: string
+  builder_evidence: string
+  pricing_evidence: string
+  availability_evidence: string
+  functionality_notes: string
+  test_performed: string
+  limitations: string
+  publisher_relationship?: string | null
+  created_at: string
 }
 
 export interface Submission {

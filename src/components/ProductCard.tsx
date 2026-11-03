@@ -43,12 +43,19 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           </div>
 
-          {/* Verification Pill - Plain Text Restraint */}
-          {product.verification_status === 'verified' && (
-            <span className="text-[11px] font-mono tracking-tight uppercase px-2 py-0.5 border border-[#111111] text-[#111111] bg-white">
-              Verified
-            </span>
-          )}
+          {/* Verification & Affiliation Badges */}
+          <div className="flex flex-col items-end gap-1">
+            {product.verification_status === 'verified' && (
+              <span className="text-[11px] font-mono tracking-tight uppercase px-2 py-0.5 border border-[#111111] text-[#111111] bg-white">
+                Verified
+              </span>
+            )}
+            {product.is_founder_submitted && (
+              <span className="text-[10px] font-mono tracking-tight uppercase px-1.5 py-0.5 border border-[#E5E5E3] text-[#555552] bg-[#F8F8F7]">
+                Publisher Affiliated
+              </span>
+            )}
+          </div>
         </div>
 
         <p className="text-xs sm:text-sm text-[#555552] line-clamp-2 leading-relaxed mb-4">
@@ -65,11 +72,21 @@ export function ProductCard({ product }: ProductCardProps) {
             <span className="text-[#555552] border border-[#E5E5E3] px-1.5 py-0.5 font-mono text-[10px] uppercase">
               Global
             </span>
-          ) : servedCount > 1 ? (
-            <span className="text-[#888885]">
-              · Serves {servedCount} countries
+          ) : product.availability_scope === 'selected_countries' ? (
+            servedCount === 1 ? (
+              <span className="text-[#888885]">
+                · Serves 1 country
+              </span>
+            ) : servedCount > 1 ? (
+              <span className="text-[#888885]">
+                · Serves {servedCount} countries
+              </span>
+            ) : null
+          ) : (
+            <span className="text-[#888885] italic">
+              · Scope unverified
             </span>
-          ) : null}
+          )}
         </div>
 
         <span className="font-mono text-[11px] font-medium text-[#111111]">

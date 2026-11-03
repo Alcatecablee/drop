@@ -23,7 +23,7 @@ function createClient() {
 
 async function runTests() {
   console.log('====================================================')
-  console.log('DropYourSaaS Production Security & Integrity Test Suite')
+  console.log('OriginIndex Production Security & Integrity Test Suite')
   console.log('====================================================')
 
   const client = createClient()
@@ -71,6 +71,26 @@ async function runTests() {
         verifiedRecord.rows[0].verification_status === 'verified' &&
         verifiedRecord.rows[0].last_verified_at !== null,
       'QuickBridge is officially verified and published in database'
+    )
+
+    const candidateScopes = await client.query(`
+      SELECT count(*) FROM public.products
+      WHERE slug != 'quickbridge' AND availability_scope = 'unverified';
+    `)
+    assert(candidateScopes.rows[0].count === '19', 'All 19 unreviewed candidate entries default to availability_scope="unverified"')
+
+    const evRecord = await client.query(`
+      SELECT ev.*, p.slug 
+      FROM public.editorial_verifications ev
+      JOIN public.products p ON ev.product_id = p.id
+      WHERE p.slug = 'quickbridge';
+    `)
+    assert(
+      evRecord.rows.length === 1 &&
+        evRecord.rows[0].reviewer_name === 'Clive Makazhu' &&
+        evRecord.rows[0].official_website === 'https://quickbridge.app' &&
+        evRecord.rows[0].publisher_relationship.includes('Clive Makazhu'),
+      'Editorial verification record is logged with full evidence and publisher disclosure'
     )
 
     // 2. TAXONOMY ACTIVE FLAGS

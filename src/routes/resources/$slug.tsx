@@ -15,7 +15,7 @@ export const Route = createFileRoute('/resources/$slug')({
     if (!loaderData?.resource) return {}
     const { resource } = loaderData
     const canonical = `https://dropyoursaas.co.za/resources/${resource.slug}`
-    const title = `${resource.meta_title || resource.title} | DropYourSaaS`
+    const title = resource.meta_title || `${resource.title} | OriginIndex`
     const description = resource.meta_description || resource.excerpt || ''
 
     const breadcrumbs = [

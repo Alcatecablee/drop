@@ -40,7 +40,7 @@ function AdminDashboardPage() {
             navigate({ to: '/admin/login' })
             return
           }
-          setAdminUser('admin@dropyoursaas.co.za (Offline Preview)')
+          setAdminUser('admin@originindex.org (Offline Preview)')
         } else {
           setAdminUser(session.user.email || 'Admin')
         }
@@ -261,7 +261,7 @@ function AdminDashboardPage() {
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-neutral-950 mt-1">
-            DropYourSaaS Operations
+            OriginIndex Operations
           </h1>
           <p className="text-xs text-neutral-600 mt-0.5">
             Signed in as: <span className="font-mono font-medium text-neutral-900">{adminUser}</span>

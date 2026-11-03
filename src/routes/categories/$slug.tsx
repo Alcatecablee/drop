@@ -25,7 +25,7 @@ export const Route = createFileRoute('/categories/$slug')({
   head: ({ loaderData }) => {
     if (!loaderData?.category) return {}
     const { category } = loaderData
-    const title = `${category.meta_title || `${category.name} Software in Africa`} | DropYourSaaS`
+    const title = category.meta_title || `${category.name} Software in Africa | OriginIndex`
     const description =
       category.meta_description ||
       `Explore vetted ${category.name.toLowerCase()} software built across Africa. Compare pricing models, country availability, and technical provenance.`

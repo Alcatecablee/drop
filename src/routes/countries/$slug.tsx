@@ -19,11 +19,11 @@ export const Route = createFileRoute('/countries/$slug')({
   },
   head: ({ loaderData }) => {
     if (!loaderData?.country) {
-      return { meta: [{ title: 'Country Not Found | DropYourSaaS' }] }
+      return { meta: [{ title: 'Country Not Found | OriginIndex' }] }
     }
     const { country } = loaderData
     const canonicalUrl = `https://dropyoursaas.co.za/countries/${country.slug}/`
-    const title = country.meta_title || `Software Built & Supported in ${country.name} | DropYourSaaS`
+    const title = country.meta_title || `Software Built & Supported in ${country.name} | OriginIndex`
     const description =
       country.meta_description ||
       `Discover verified software built in ${country.name} or supporting local ${country.currency_code} payment rails and compliance.`

@@ -223,6 +223,7 @@ function SubmitPage() {
                   category_id: categories[0]?.id || '',
                   country_built_id: countries[0]?.id || '',
                   countries_served_ids: [countries[0]?.id || ''],
+                  availability_scope: 'selected_countries',
                   pricing_model: 'freemium',
                   pricing_details: '',
                   submitter_name: '',

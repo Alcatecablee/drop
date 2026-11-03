@@ -90,7 +90,7 @@ function AdminLoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="editor@dropyoursaas.co.za"
+              placeholder="editor@originindex.org"
               className="w-full px-3 py-2 border border-neutral-300 text-sm focus:border-black focus:outline-none"
             />
           </div>
@@ -122,7 +122,7 @@ function AdminLoginPage() {
           <Link to="/" className="hover:text-black">
             &larr; Return to Directory
           </Link>
-          <span className="font-mono">DropYourSaaS Core</span>
+          <span className="font-mono">OriginIndex Core</span>
         </div>
       </div>
     </div>

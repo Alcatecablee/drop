@@ -21,13 +21,13 @@ export const Route = createFileRoute('/products/$slug')({
   head: ({ loaderData }) => {
     if (!loaderData?.product) {
       return {
-        meta: [{ title: 'Product Not Found | DropYourSaaS' }],
+        meta: [{ title: 'Product Not Found | OriginIndex' }],
       }
     }
 
     const { product } = loaderData
     const canonicalUrl = `https://dropyoursaas.co.za/products/${product.slug}/`
-    const title = product.meta_title || `${product.name} – ${product.tagline} | DropYourSaaS`
+    const title = product.meta_title || `${product.name} – ${product.tagline} | OriginIndex`
     const description =
       product.meta_description ||
       `${product.description.slice(0, 145).trim()}… Built in ${product.country_built?.name || 'Africa'}. Explore pricing model, supported countries, and official website.`
@@ -101,6 +101,18 @@ function ProductProfilePage() {
       {product.operational_status === 'discontinued' && (
         <div className="mb-8 p-4 border border-red-300 bg-red-50 text-red-900 text-sm">
           <strong>Notice:</strong> This software product has been discontinued or operations have ceased. Information is retained for historical and architectural reference.
+        </div>
+      )}
+
+      {/* Publisher Affiliation Disclosure Banner */}
+      {product.is_founder_submitted && (
+        <div className="mb-8 p-4 border border-[#E5E5E3] bg-[#F8F8F7] text-xs text-[#333331] leading-relaxed">
+          <div className="font-semibold text-[#111111] uppercase tracking-wider text-[11px] mb-1">
+            Publisher Disclosure
+          </div>
+          <p>
+            QuickBridge is developed by Clive Makazhu, the operator of OriginIndex. This listing has been reviewed against the product&apos;s public website and documentation. OriginIndex has not conducted an independent security audit of the product.
+          </p>
         </div>
       )}
 
@@ -206,17 +218,75 @@ function ProductProfilePage() {
               .{' '}
               {product.availability_scope === 'global' ? (
                 <>It operates as an open, globally accessible web service without regional geographical restrictions.</>
-              ) : (
+              ) : product.availability_scope === 'selected_countries' ? (
                 <>
                   It delivers active platform support and local market integrations for customers across:{' '}
                   <span className="text-[#111111] font-medium">
-                    {product.countries_served?.map((c) => c.name).join(', ') || 'Regional markets'}
+                    {product.countries_served && product.countries_served.length > 0
+                      ? product.countries_served.map((c) => c.name).join(', ')
+                      : 'identified regional markets'}
                   </span>
                   .
+                </>
+              ) : (
+                <>
+                  Specific regional market availability and localized payment integrations have not yet been established by OriginIndex editors.
                 </>
               )}
             </p>
           </section>
+
+          {/* Editorial Verification Audit Trail */}
+          {product.verification_record && (
+            <section className="pt-8 border-t border-[#E5E5E3]">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-4">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-[#111111]">
+                  Editorial Verification Audit Trail
+                </h2>
+                <span className="text-xs font-mono text-[#888885]">
+                  Audited {new Date(product.verification_record.verification_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              </div>
+              <div className="border border-[#E5E5E3] bg-[#F8F8F7] divide-y divide-[#E5E5E3] text-xs">
+                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <span className="font-medium text-[#555552]">Reviewer</span>
+                  <span className="sm:col-span-2 text-[#111111] font-medium">{product.verification_record.reviewer_name} (OriginIndex)</span>
+                </div>
+                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <span className="font-medium text-[#555552]">Official Website Checked</span>
+                  <a href={product.verification_record.official_website} target="_blank" rel="noopener noreferrer" className="sm:col-span-2 text-[#111111] hover:underline font-mono">
+                    {product.verification_record.official_website} ↗
+                  </a>
+                </div>
+                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <span className="font-medium text-[#555552]">Builder Provenance Evidence</span>
+                  <span className="sm:col-span-2 text-[#333331]">{product.verification_record.builder_evidence}</span>
+                </div>
+                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <span className="font-medium text-[#555552]">Pricing &amp; Commercial Terms</span>
+                  <span className="sm:col-span-2 text-[#333331]">{product.verification_record.pricing_evidence}</span>
+                </div>
+                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <span className="font-medium text-[#555552]">Availability Model</span>
+                  <span className="sm:col-span-2 text-[#333331]">{product.verification_record.availability_evidence}</span>
+                </div>
+                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <span className="font-medium text-[#555552]">Test Performed</span>
+                  <span className="sm:col-span-2 text-[#333331]">{product.verification_record.test_performed}</span>
+                </div>
+                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <span className="font-medium text-[#555552]">Audit Limitations</span>
+                  <span className="sm:col-span-2 text-[#555552] italic">{product.verification_record.limitations}</span>
+                </div>
+                {product.verification_record.publisher_relationship && (
+                  <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#F1F1EF]">
+                    <span className="font-medium text-[#111111]">Publisher Relationship</span>
+                    <span className="sm:col-span-2 text-[#111111]">{product.verification_record.publisher_relationship}</span>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Related Products in Same Category */}
           {relatedProducts.length > 0 && (

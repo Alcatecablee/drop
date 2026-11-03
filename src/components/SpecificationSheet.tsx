@@ -26,9 +26,16 @@ export function SpecificationSheet({ product }: SpecificationSheetProps) {
           <dt className="text-[#555552]">Verification Status</dt>
           <dd className="text-right font-medium text-[#111111]">
             {product.verification_status === 'verified' ? (
-              <span className="text-[#111111]">
-                Verified {verifiedDate ? `(${verifiedDate})` : ''}
-              </span>
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="text-[#111111]">
+                  Verified {verifiedDate ? `(${verifiedDate})` : ''}
+                </span>
+                {product.is_founder_submitted && (
+                  <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 border border-[#E5E5E3] bg-[#F8F8F7] text-[#555552]">
+                    Publisher Affiliated
+                  </span>
+                )}
+              </div>
             ) : product.verification_status === 'community_submitted' ? (
               <span className="text-[#555552]">Community Submitted</span>
             ) : (
@@ -183,10 +190,10 @@ export function SpecificationSheet({ product }: SpecificationSheetProps) {
         )}
       </dl>
 
-      {/* Founder Disclosure Footnote */}
+      {/* Publisher / Founder Disclosure Footnote */}
       {product.is_founder_submitted && (
-        <div className="mt-4 pt-3 border-t border-[#F1F1EF] text-[11px] text-[#888885] leading-relaxed">
-          Disclosure: Founder-submitted listing; audited against standard DropYourSaaS verification criteria.
+        <div className="mt-4 pt-3 border-t border-[#F1F1EF] text-[11px] text-[#555552] leading-relaxed">
+          <strong className="text-[#111111]">Publisher Disclosure:</strong> QuickBridge is developed by Clive Makazhu, the operator of OriginIndex. This listing has been reviewed against the product&apos;s public website and documentation. OriginIndex has not conducted an independent security audit of the product.
         </div>
       )}
     </div>
