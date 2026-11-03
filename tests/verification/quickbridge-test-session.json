@@ -1,0 +1,52 @@
+{
+  "test_id": "QB-VERIFY-20261103-01",
+  "product": "QuickBridge",
+  "url": "https://quickbridge.app",
+  "timestamp": "2026-11-03T14:22:18Z",
+  "auditor": "Clive Makazhu",
+  "publisher_affiliated": true,
+  "endpoints": {
+    "sender": {
+      "device": "Apple MacBook Pro (M2 Pro)",
+      "os": "macOS Sonoma 14.1",
+      "browser": "Chrome 120.0.6099.129",
+      "network": "FTTH (Residential)",
+      "nat_type": "Full-Cone"
+    },
+    "receiver": {
+      "device": "Apple iPhone 14 Pro",
+      "os": "iOS 17.1",
+      "browser": "Safari 17.1 (19616.2.9.11.7)",
+      "network": "Vodacom SA 4G LTE",
+      "nat_type": "Symmetric / CGNAT"
+    }
+  },
+  "payload": {
+    "filename": "sample-payload-250mb.tar.gz",
+    "size_bytes": 262144000,
+    "sha256": "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
+    "received_sha256": "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
+    "integrity_verified": true
+  },
+  "ice_negotiation": {
+    "protocol": "RFC 8445 ICE / RFC 8831 WebRTC Data Channels",
+    "selected_candidate_pair": {
+      "sender_candidate": "srflx",
+      "receiver_candidate": "relay",
+      "transport": "TURN Relay (RFC 8656)"
+    },
+    "duration_seconds": 48.2,
+    "effective_throughput_mbps": 43.51
+  },
+  "network_audit": {
+    "client_storage_requests_observed": 0,
+    "signaling_url": "wss://quickbridge.app/ws",
+    "turn_endpoint": "turn.quickbridge.app:3478",
+    "third_party_storage_detected": false
+  },
+  "capacity_boundaries": {
+    "empirically_verified_mb": 250,
+    "builder_stated_capacity_gb": 10,
+    "builder_stated_stress_tested_by_index": false
+  }
+}

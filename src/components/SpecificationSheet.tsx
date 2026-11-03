@@ -30,11 +30,15 @@ export function SpecificationSheet({ product }: SpecificationSheetProps) {
                 <span className="text-[#111111]">
                   Verified {verifiedDate ? `(${verifiedDate})` : ''}
                 </span>
-                {product.is_founder_submitted && (
+                {product.publisher_affiliation ? (
                   <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 border border-[#E5E5E3] bg-[#F8F8F7] text-[#555552]">
                     Publisher Affiliated
                   </span>
-                )}
+                ) : product.is_founder_submitted ? (
+                  <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 border border-[#E5E5E3] bg-[#F8F8F7] text-[#555552]">
+                    Founder Submitted
+                  </span>
+                ) : null}
               </div>
             ) : product.verification_status === 'community_submitted' ? (
               <span className="text-[#555552]">Community Submitted</span>
@@ -191,11 +195,15 @@ export function SpecificationSheet({ product }: SpecificationSheetProps) {
       </dl>
 
       {/* Publisher / Founder Disclosure Footnote */}
-      {product.is_founder_submitted && (
+      {product.publisher_affiliation ? (
         <div className="mt-4 pt-3 border-t border-[#F1F1EF] text-[11px] text-[#555552] leading-relaxed">
-          <strong className="text-[#111111]">Publisher Disclosure:</strong> QuickBridge is developed by Clive Makazhu, the operator of OriginIndex. This listing has been reviewed against the product&apos;s public website and documentation. OriginIndex has not conducted an independent security audit of the product.
+          <strong className="text-[#111111]">Publisher Disclosure:</strong> {product.publisher_affiliation_details || 'This product is developed by the publisher and operator of OriginIndex. This listing has been verified against the product\'s public website and documentation. OriginIndex has not conducted an independent security audit.'}
         </div>
-      )}
+      ) : product.is_founder_submitted ? (
+        <div className="mt-4 pt-3 border-t border-[#F1F1EF] text-[11px] text-[#555552] leading-relaxed">
+          <strong className="text-[#111111]">Founder Disclosure:</strong> Submitted by product founder. Independently verified by OriginIndex editorial desk.
+        </div>
+      ) : null}
     </div>
   )
 }

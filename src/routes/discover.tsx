@@ -220,11 +220,23 @@ function DiscoverPage() {
           No published products match your selected filters. Try broadening your search or resetting filters.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProducts.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+
+          {/* Editorial Integrity & Staging Notice */}
+          <div className="mt-12 p-6 border border-[#E5E5E3] bg-[#F8F8F7] text-xs text-[#555552] leading-relaxed">
+            <div className="font-semibold text-[#111111] uppercase tracking-wider text-[11px] mb-1.5">
+              OriginIndex Editorial Standard &amp; Staging Pipeline
+            </div>
+            <p>
+              We prioritize audited accuracy over directory volume. To prevent conflicts of interest and maintain credibility, OriginIndex publishes only verified listings that meet our complete reference standard. Staged candidate products across South Africa, Nigeria, Kenya, Egypt, and Ghana are evaluated sequentially in our private pipeline before public inclusion.
+            </p>
+          </div>
+        </>
       )}
     </div>
   )

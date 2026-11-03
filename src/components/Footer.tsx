@@ -19,7 +19,10 @@ export function Footer() {
               We document factual pricing models, regional compliance rails, and verified builder provenance.
             </p>
             <p className="text-xs text-[#888885]">
-              Editorial Policy: Listings are verified against live production domains, public rate cards, and builder attribution before publication.
+              Editorial Policy: Listings are verified against live production domains, public rate cards, and builder attribution before publication. Read our{' '}
+              <Link to="/methodology" className="underline hover:text-[#111111]">
+                Editorial Methodology &amp; Verification Standards
+              </Link>.
             </p>
           </div>
 
@@ -77,6 +80,9 @@ export function Footer() {
           <div className="flex items-center gap-6">
             <Link to="/resources" className="hover:text-[#111111]">
               Editorial Resources
+            </Link>
+            <Link to="/methodology" className="hover:text-[#111111]">
+              Methodology
             </Link>
             <Link to="/submit" className="hover:text-[#111111]">
               Submit Software

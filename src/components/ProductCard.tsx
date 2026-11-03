@@ -50,11 +50,15 @@ export function ProductCard({ product }: ProductCardProps) {
                 Verified
               </span>
             )}
-            {product.is_founder_submitted && (
+            {product.publisher_affiliation ? (
               <span className="text-[10px] font-mono tracking-tight uppercase px-1.5 py-0.5 border border-[#E5E5E3] text-[#555552] bg-[#F8F8F7]">
                 Publisher Affiliated
               </span>
-            )}
+            ) : product.is_founder_submitted ? (
+              <span className="text-[10px] font-mono tracking-tight uppercase px-1.5 py-0.5 border border-[#E5E5E3] text-[#555552] bg-[#F8F8F7]">
+                Founder Submitted
+              </span>
+            ) : null}
           </div>
         </div>
 

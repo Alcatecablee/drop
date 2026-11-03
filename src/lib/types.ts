@@ -58,6 +58,8 @@ export interface Product {
   builder_twitter?: string | null
   builder_linkedin?: string | null
   is_founder_submitted: boolean
+  publisher_affiliation: boolean
+  publisher_affiliation_details?: string | null
 
   pricing_model: PricingModel
   starting_price_display?: string | null
@@ -101,6 +103,19 @@ export interface ProductWithRelations extends Product {
   verification_record?: EditorialVerification | null
 }
 
+export type ResourceCategory =
+  | 'Buyer Guides'
+  | 'Technology Explainers'
+  | 'African Software Landscape'
+  | 'Research & Reports'
+
+export interface EditorialResourceCitation {
+  title: string
+  url?: string
+  publisher?: string
+  date?: string
+}
+
 export interface EditorialVerification {
   id: string
   product_id: string
@@ -114,6 +129,10 @@ export interface EditorialVerification {
   test_performed: string
   limitations: string
   publisher_relationship?: string | null
+  is_approved: boolean
+  observed_findings?: string | null
+  builder_supplied_evidence?: string | null
+  untested_boundaries?: string | null
   created_at: string
 }
 
@@ -144,10 +163,16 @@ export interface EditorialResource {
   id: string
   title: string
   slug: string
+  category: ResourceCategory
+  reading_time_minutes: number
   excerpt: string
   content_markdown: string
   cover_image_url?: string | null
   author_name: string
+  author_role?: string | null
+  reviewer_name?: string | null
+  last_reviewed_at?: string | null
+  citations?: EditorialResourceCitation[]
   publication_status: PublicationStatus
   meta_title?: string | null
   meta_description?: string | null

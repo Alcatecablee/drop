@@ -105,13 +105,26 @@ function ProductProfilePage() {
       )}
 
       {/* Publisher Affiliation Disclosure Banner */}
-      {product.is_founder_submitted && (
+      {product.publisher_affiliation && (
         <div className="mb-8 p-4 border border-[#E5E5E3] bg-[#F8F8F7] text-xs text-[#333331] leading-relaxed">
           <div className="font-semibold text-[#111111] uppercase tracking-wider text-[11px] mb-1">
             Publisher Disclosure
           </div>
           <p>
-            QuickBridge is developed by Clive Makazhu, the operator of OriginIndex. This listing has been reviewed against the product&apos;s public website and documentation. OriginIndex has not conducted an independent security audit of the product.
+            {product.publisher_affiliation_details ||
+              'QuickBridge is developed by Clive Makazhu, the publisher and operator of OriginIndex. This listing has been verified against the product\'s live web service and documentation. OriginIndex has not conducted an independent security audit of the product.'}
+          </p>
+        </div>
+      )}
+
+      {/* Founder Submission Notice (when not publisher affiliated) */}
+      {!product.publisher_affiliation && product.is_founder_submitted && (
+        <div className="mb-8 p-4 border border-[#E5E5E3] bg-white text-xs text-[#555552] leading-relaxed">
+          <div className="font-semibold text-[#111111] uppercase tracking-wider text-[11px] mb-1">
+            Founder Submitted Listing
+          </div>
+          <p>
+            This listing was submitted directly by the software founder and audited by the OriginIndex editorial team against live production domains and official documentation.
           </p>
         </div>
       )}
@@ -236,54 +249,114 @@ function ProductProfilePage() {
             </p>
           </section>
 
-          {/* Editorial Verification Audit Trail */}
+          {/* Editorial Verification Audit Trail: 3-Part Standard */}
           {product.verification_record && (
             <section className="pt-8 border-t border-[#E5E5E3]">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-4">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-[#111111]">
-                  Editorial Verification Audit Trail
-                </h2>
-                <span className="text-xs font-mono text-[#888885]">
-                  Audited {new Date(product.verification_record.verification_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </span>
-              </div>
-              <div className="border border-[#E5E5E3] bg-[#F8F8F7] divide-y divide-[#E5E5E3] text-xs">
-                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <span className="font-medium text-[#555552]">Reviewer</span>
-                  <span className="sm:col-span-2 text-[#111111] font-medium">{product.verification_record.reviewer_name} (OriginIndex)</span>
-                </div>
-                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <span className="font-medium text-[#555552]">Official Website Checked</span>
-                  <a href={product.verification_record.official_website} target="_blank" rel="noopener noreferrer" className="sm:col-span-2 text-[#111111] hover:underline font-mono">
-                    {product.verification_record.official_website} ↗
-                  </a>
-                </div>
-                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <span className="font-medium text-[#555552]">Builder Provenance Evidence</span>
-                  <span className="sm:col-span-2 text-[#333331]">{product.verification_record.builder_evidence}</span>
-                </div>
-                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <span className="font-medium text-[#555552]">Pricing &amp; Commercial Terms</span>
-                  <span className="sm:col-span-2 text-[#333331]">{product.verification_record.pricing_evidence}</span>
-                </div>
-                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <span className="font-medium text-[#555552]">Availability Model</span>
-                  <span className="sm:col-span-2 text-[#333331]">{product.verification_record.availability_evidence}</span>
-                </div>
-                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <span className="font-medium text-[#555552]">Test Performed</span>
-                  <span className="sm:col-span-2 text-[#333331]">{product.verification_record.test_performed}</span>
-                </div>
-                <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <span className="font-medium text-[#555552]">Audit Limitations</span>
-                  <span className="sm:col-span-2 text-[#555552] italic">{product.verification_record.limitations}</span>
-                </div>
-                {product.verification_record.publisher_relationship && (
-                  <div className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#F1F1EF]">
-                    <span className="font-medium text-[#111111]">Publisher Relationship</span>
-                    <span className="sm:col-span-2 text-[#111111]">{product.verification_record.publisher_relationship}</span>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-6">
+                <div>
+                  <div className="font-mono text-xs uppercase tracking-wider text-[#888885] mb-1">
+                    OriginIndex Reference Standard
                   </div>
-                )}
+                  <h2 className="text-base sm:text-lg font-bold text-[#111111]">
+                    Editorial Verification Audit Trail
+                  </h2>
+                </div>
+                <div className="text-right text-xs">
+                  <span className="font-mono text-[#111111] font-semibold">
+                    Audited: {new Date(product.verification_record.verification_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                  <span className="block text-[11px] text-[#888885]">
+                    Reviewer: {product.verification_record.reviewer_name}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {/* 1. Directly Observed by OriginIndex */}
+                <div className="border border-[#E5E5E3] bg-white p-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#F1F1EF] mb-3">
+                    <h3 className="font-semibold text-xs uppercase tracking-wider text-[#111111] flex items-center gap-2">
+                      <span className="w-2 h-2 bg-emerald-600 rounded-full inline-block"></span>
+                      1. Directly Observed by OriginIndex
+                    </h3>
+                    <span className="text-[10px] font-mono text-[#888885] uppercase">
+                      Empirical Verification
+                    </span>
+                  </div>
+                  <div className="text-xs text-[#333331] leading-relaxed space-y-2">
+                    {product.verification_record.observed_findings ? (
+                      product.verification_record.observed_findings.split('\n').map((line, idx) => (
+                        <p key={idx} className="flex items-start gap-2">
+                          <span className="text-emerald-700 font-bold">✓</span>
+                          <span>{line.replace(/^\d+\.\s*/, '')}</span>
+                        </p>
+                      ))
+                    ) : (
+                      <p>{product.verification_record.test_performed}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Builder-Supplied Evidence */}
+                <div className="border border-[#E5E5E3] bg-[#F8F8F7] p-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#E5E5E3] mb-3">
+                    <h3 className="font-semibold text-xs uppercase tracking-wider text-[#111111] flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-600 rounded-full inline-block"></span>
+                      2. Builder-Supplied Evidence &amp; Attributions
+                    </h3>
+                    <span className="text-[10px] font-mono text-[#888885] uppercase">
+                      Attestation &amp; Specs
+                    </span>
+                  </div>
+                  <div className="text-xs text-[#333331] leading-relaxed space-y-2">
+                    {product.verification_record.builder_supplied_evidence ? (
+                      product.verification_record.builder_supplied_evidence.split('\n').map((line, idx) => (
+                        <p key={idx} className="flex items-start gap-2">
+                          <span className="text-blue-700 font-bold">•</span>
+                          <span>{line.replace(/^\d+\.\s*/, '')}</span>
+                        </p>
+                      ))
+                    ) : (
+                      <>
+                        <p><strong>Builder Attribution: </strong>{product.verification_record.builder_evidence}</p>
+                        <p><strong>Commercial Rate Card: </strong>{product.verification_record.pricing_evidence}</p>
+                        <p><strong>Architecture Notes: </strong>{product.verification_record.functionality_notes}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. Audit Boundaries & What Has NOT Been Tested */}
+                <div className="border border-[#E5E5E3] bg-[#FAFAFA] p-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#E5E5E3] mb-3">
+                    <h3 className="font-semibold text-xs uppercase tracking-wider text-[#111111] flex items-center gap-2">
+                      <span className="w-2 h-2 bg-amber-600 rounded-full inline-block"></span>
+                      3. Audit Boundaries &amp; Untested Areas
+                    </h3>
+                    <span className="text-[10px] font-mono text-[#888885] uppercase">
+                      Independent Boundaries
+                    </span>
+                  </div>
+                  <div className="text-xs text-[#555552] leading-relaxed space-y-2">
+                    {product.verification_record.untested_boundaries ? (
+                      product.verification_record.untested_boundaries.split('\n').map((line, idx) => (
+                        <p key={idx} className="flex items-start gap-2">
+                          <span className="text-amber-700 font-bold">!</span>
+                          <span>{line.replace(/^\d+\.\s*/, '')}</span>
+                        </p>
+                      ))
+                    ) : (
+                      <p className="italic">{product.verification_record.limitations}</p>
+                    )}
+                  </div>
+
+                  {product.verification_record.publisher_relationship && (
+                    <div className="mt-4 pt-3 border-t border-[#E5E5E3] text-xs text-[#111111] font-medium bg-[#F1F1EF] p-2.5">
+                      <strong>Publisher Disclosure: </strong>
+                      {product.verification_record.publisher_relationship}
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
           )}

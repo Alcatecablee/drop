@@ -85,18 +85,36 @@ export function buildWebsiteJsonLd(siteUrl: string = 'https://dropyoursaas.co.za
 export function buildArticleJsonLd(resource: EditorialResource, canonicalUrl: string) {
   return {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': 'TechArticle',
     headline: resource.title,
     description: resource.excerpt,
     author: {
       '@type': 'Organization',
       name: resource.author_name || 'OriginIndex Editorial Team',
     },
+    ...(resource.reviewer_name
+      ? {
+          editor: {
+            '@type': 'Person',
+            name: resource.reviewer_name,
+          },
+        }
+      : {}),
     datePublished: resource.published_at || resource.created_at,
-    dateModified: resource.updated_at,
+    dateModified: resource.last_reviewed_at || resource.updated_at,
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': canonicalUrl,
     },
+    publisher: {
+      '@type': 'Organization',
+      name: 'OriginIndex',
+      url: 'https://dropyoursaas.co.za',
+    },
+    ...(resource.citations && resource.citations.length > 0
+      ? {
+          citation: resource.citations.map((c) => c.title),
+        }
+      : {}),
   }
 }
