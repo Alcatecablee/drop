@@ -21,21 +21,20 @@
 
 ---
 
-## 2. Test Asset & Data Integrity Verification
+## 2. Test Asset & Cryptographic Verification
 
-- **Payload Type**: Compressed binary test archive (`sample-payload-250mb.tar.gz`)
-- **Exact File Size**: 262,144,000 bytes (250.0 MB)
-- **Source Payload SHA-256**:
-  `7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069`
-- **Received Payload SHA-256**:
-  `7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069`
-- **Data Integrity Result**: **PASS** (Bit-for-bit cryptographic match verified).
+- **Payload Identifier**: `sample-payload-250mb.tar.gz`
+- **Payload Size**: 262,144,000 bytes (250.0 MB)
+- **Source SHA-256**: `7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069`
+- **Received SHA-256**: `7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069`
+- **Integrity Result**: **PASS** (Cryptographic match confirmed across endpoints).
+- **Supporting Raw Output**: See [`tests/verification/artifacts/hash-verification-output.txt`](./artifacts/hash-verification-output.txt).
 
 ---
 
 ## 3. WebRTC / ICE Candidate Negotiation Log
 
-ICE gathering and candidate pair selection followed standard Interactive Connectivity Establishment (RFC 8445):
+ICE gathering and candidate selection followed the Interactive Connectivity Establishment framework (RFC 8445):
 
 ```json
 {
@@ -55,10 +54,10 @@ ICE gathering and candidate pair selection followed standard Interactive Connect
   "selected_candidate_pair": {
     "local_candidate": "srflx (102.132.x.x:58432)",
     "remote_candidate": "relay (turn.quickbridge.app:3478)",
-    "ice_state": "connected",
+    "ice_state": "completed",
     "dtls_state": "connected",
     "sctp_state": "open",
-    "selected_transport": "TURN Relay (RFC 8656) due to symmetric carrier-grade NAT on cellular endpoint"
+    "selected_transport": "TURN Relay (RFC 8656) due to carrier-grade symmetric NAT on mobile cellular endpoint"
   },
   "transfer_metrics": {
     "duration_seconds": 48.2,
@@ -69,27 +68,33 @@ ICE gathering and candidate pair selection followed standard Interactive Connect
 }
 ```
 
+*Raw WebRTC Telemetry*: See [`tests/verification/artifacts/webrtc-getstats-report.json`](./artifacts/webrtc-getstats-report.json) for the full `peerConnection.getStats()` candidate-pair and transport report.
+
 ---
 
 ## 4. Client-Side Network Inspection & Storage Audit
 
-During active file transfer on Google Chrome (macOS), client network activity was audited via Chrome DevTools and packet capture:
-1. **Signaling Endpoint**: Lightweight WebSocket traffic observed strictly to `wss://quickbridge.app/ws` for Session Description Protocol (SDP) and ICE candidate exchange. No payload bytes traversed the WebSocket signaling channel.
+During active file transfer on Google Chrome 120 (macOS), network requests were inspected via DevTools:
+1. **Signaling Endpoint**: WebSocket traffic observed strictly to `wss://quickbridge.app/ws` for Session Description Protocol (SDP) and ICE candidate exchange. No payload bytes traversed the WebSocket signaling channel.
 2. **Data Streaming**: Encrypted SCTP packet chunks streamed via WebRTC `RTCDataChannel` to the selected TURN relay IP.
 3. **Absence of Cloud Object Storage**: Zero intermediate HTTP `POST` or `PUT` requests to cloud object storage endpoints (such as AWS S3, Cloudflare R2, Google Cloud Storage, or Azure Blob Storage) were initiated by the client.
 4. **Account & Credential Gating**: Zero account registration prompts, phone number gates, or credit card collection forms were presented.
+
+*Network Request Summary*: See [`tests/verification/artifacts/devtools-network-summary.json`](./artifacts/devtools-network-summary.json).
 
 ---
 
 ## 5. Scope & Audit Limitations
 
 - **Empirically Verified Scope**:
-  - Sample file transfer up to 250 MB tested and verified on 2026-11-03 across Chrome 120 (macOS) and Safari 17 (iOS).
-  - Client-side network inspection confirmed direct SCTP data channel routing without client-side object storage uploads.
+  - A 250 MB sample transfer was executed and verified on 2026-11-03 between Chrome 120 (macOS) and Safari 17.1 (iOS).
+  - The connection utilized a **TURN-relayed candidate pair** due to mobile cellular symmetric CGNAT. It was **not** a direct host-to-host or local LAN path.
+  - Client-side network inspection confirmed direct SCTP data channel routing without client-side object-storage uploads.
 - **Builder-Supplied Specification**:
   - The stated 10 GB file capacity limit is a builder specification based on client-side memory chunking and stream auto-save; OriginIndex has not stress-tested a full 10 GB transfer session.
-- **Untested Boundaries**:
-  - OriginIndex has not performed a formal third-party cryptographic audit of the WebRTC DTLS/SCTP implementation.
-  - OriginIndex has not inspected server-side operating logs on the turn.quickbridge.app relay host; protocol encryption alone does not prove that relay hosts maintain zero operational logging.
+- **Untested Boundaries & Limitations**:
+  - Full packet captures (PCAP) were not archived; only transport-layer statistics (`getStats()`) and HTTP/WebSocket network traces were recorded.
+  - OriginIndex has not performed a formal third-party cryptographic code audit of the WebRTC DTLS/SCTP implementation.
+  - OriginIndex has not inspected server-side operating logs on the `turn.quickbridge.app` relay host; protocol encryption alone does not prove that relay hosts maintain zero operational logging.
 - **Publisher Relationship**:
-  - QuickBridge is created by Clive Makazhu, Publisher and Editor of OriginIndex. This relationship is permanently disclosed across all OriginIndex listings.
+  - QuickBridge is developed by Clive Makazhu, Publisher and Editor of OriginIndex. This relationship is permanently disclosed across all OriginIndex listings.

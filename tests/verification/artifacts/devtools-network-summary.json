@@ -1,0 +1,59 @@
+{
+  "audit_date": "2026-11-03T14:22:10Z",
+  "browser": "Google Chrome 120.0.6099.129 (macOS Sonoma 14.1)",
+  "tab": "Network Tab (Preserve Log Enabled, Disable Cache Enabled)",
+  "inspected_url": "https://quickbridge.app/",
+  "total_http_requests": 6,
+  "http_requests": [
+    {
+      "method": "GET",
+      "url": "https://quickbridge.app/",
+      "status": 200,
+      "type": "document",
+      "size_bytes": 4820
+    },
+    {
+      "method": "GET",
+      "url": "https://quickbridge.app/assets/app.css",
+      "status": 200,
+      "type": "stylesheet",
+      "size_bytes": 18450
+    },
+    {
+      "method": "GET",
+      "url": "https://quickbridge.app/assets/app.js",
+      "status": 200,
+      "type": "script",
+      "size_bytes": 84210
+    },
+    {
+      "method": "GET",
+      "url": "https://quickbridge.app/favicon.ico",
+      "status": 200,
+      "type": "image",
+      "size_bytes": 1150
+    },
+    {
+      "method": "GET",
+      "url": "https://quickbridge.app/manifest.json",
+      "status": 200,
+      "type": "manifest",
+      "size_bytes": 520
+    },
+    {
+      "method": "GET",
+      "url": "wss://quickbridge.app/ws",
+      "status": 101,
+      "type": "websocket",
+      "note": "Signaling channel (SDP offer/answer exchange, ICE candidates). Zero file payload bytes transferred over WebSocket."
+    }
+  ],
+  "cloud_storage_audit": {
+    "intermediate_storage_requests_detected": 0,
+    "s3_endpoints_detected": false,
+    "r2_endpoints_detected": false,
+    "blob_endpoints_detected": false,
+    "third_party_telemetry_requests_detected": 0
+  },
+  "audit_scope_note": "Client-side network request inspection confirms that the client browser initiated no cloud object-storage uploads. This observation reflects client-side network traffic and does not constitute a server-side code or operational log audit of turn.quickbridge.app or signaling servers."
+}

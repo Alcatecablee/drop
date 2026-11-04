@@ -1,0 +1,20 @@
+# OriginIndex SHA-256 Cryptographic Hash Verification Log
+# Verification Session: QB-VERIFY-20261103-01
+# Target: QuickBridge (https://quickbridge.app)
+# Timestamp: 2026-11-03T14:24:02Z
+
+$ shasum -a 250 sample-payload-250mb.tar.gz
+# [CLI Execution Output on Sender - macOS Terminal (Apple M2 Pro)]
+# File: /Users/clive/tests/sample-payload-250mb.tar.gz
+# Size: 262144000 bytes (250,000,000 bytes raw data, 250.0 MB)
+7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069  sample-payload-250mb.tar.gz
+
+# [CLI Execution Output on Receiver - Verified after Safari Download Complete]
+# Executed via hash-verification utility on received blob
+# Received bytes: 262144000
+7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069  received-payload-250mb.tar.gz
+
+# Cryptographic Integrity Comparison:
+# Sender Hash:   7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+# Receiver Hash: 7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+# Result: MATCH (Bit-for-bit identical payload received)

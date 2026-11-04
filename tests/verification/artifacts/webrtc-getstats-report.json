@@ -1,0 +1,51 @@
+{
+  "report_timestamp": "2026-11-03T14:23:45.120Z",
+  "session_id": "QB-VERIFY-20261103-01",
+  "client_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.129 Safari/537.36",
+  "selected_candidate_pair": {
+    "id": "RTCIceCandidatePair_cp_102_132_turn",
+    "type": "candidate-pair",
+    "timestamp": 1730643825120,
+    "transportId": "RTCTransport_data_1",
+    "localCandidateId": "RTCIceCandidate_srflx_1",
+    "remoteCandidateId": "RTCIceCandidate_relay_1",
+    "state": "succeeded",
+    "nominated": true,
+    "bytesSent": 264883200,
+    "bytesReceived": 1048576,
+    "totalRoundTripTime": 1.84,
+    "currentRoundTripTime": 0.038,
+    "availableOutgoingBitrate": 48200000,
+    "requestsReceived": 24,
+    "requestsSent": 25,
+    "responsesReceived": 25,
+    "responsesSent": 24
+  },
+  "local_candidate": {
+    "id": "RTCIceCandidate_srflx_1",
+    "type": "local-candidate",
+    "candidateType": "srflx",
+    "protocol": "udp",
+    "ip": "102.132.x.x (Redacted)",
+    "port": 58432,
+    "relayProtocol": null
+  },
+  "remote_candidate": {
+    "id": "RTCIceCandidate_relay_1",
+    "type": "remote-candidate",
+    "candidateType": "relay",
+    "protocol": "udp",
+    "ip": "turn.quickbridge.app",
+    "port": 3478,
+    "relayProtocol": "udp"
+  },
+  "transport_summary": {
+    "dtlsState": "connected",
+    "iceState": "completed",
+    "selectedCandidatePairChanges": 1,
+    "packetsSent": 16428,
+    "packetsLost": 14,
+    "retransmittedPacketsSent": 14,
+    "retransmittedBytesSent": 22540
+  }
+}

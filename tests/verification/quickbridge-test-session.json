@@ -26,27 +26,39 @@
     "size_bytes": 262144000,
     "sha256": "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
     "received_sha256": "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
-    "integrity_verified": true
+    "integrity_verified": true,
+    "hash_artifact": "tests/verification/artifacts/hash-verification-output.txt"
   },
   "ice_negotiation": {
-    "protocol": "RFC 8445 ICE / RFC 8831 WebRTC Data Channels",
+    "framework": "RFC 8445 ICE / RFC 8831 WebRTC Data Channels",
     "selected_candidate_pair": {
-      "sender_candidate": "srflx",
-      "receiver_candidate": "relay",
-      "transport": "TURN Relay (RFC 8656)"
+      "local_candidate_type": "srflx",
+      "remote_candidate_type": "relay",
+      "transport": "TURN Relay (RFC 8656)",
+      "relay_server": "turn.quickbridge.app:3478",
+      "direct_p2p_achieved": false,
+      "relayed_connection": true
     },
     "duration_seconds": 48.2,
-    "effective_throughput_mbps": 43.51
+    "effective_throughput_mbps": 43.51,
+    "getstats_artifact": "tests/verification/artifacts/webrtc-getstats-report.json"
   },
   "network_audit": {
     "client_storage_requests_observed": 0,
     "signaling_url": "wss://quickbridge.app/ws",
     "turn_endpoint": "turn.quickbridge.app:3478",
-    "third_party_storage_detected": false
+    "third_party_storage_detected": false,
+    "network_log_artifact": "tests/verification/artifacts/devtools-network-summary.json"
   },
   "capacity_boundaries": {
     "empirically_verified_mb": 250,
     "builder_stated_capacity_gb": 10,
     "builder_stated_stress_tested_by_index": false
-  }
+  },
+  "audit_limitations": [
+    "Test conducted on point-in-time versions: Chrome 120 (macOS) and Safari 17.1 (iOS).",
+    "WebRTC traffic was carried through a TURN relay, not a direct endpoint-to-endpoint network path.",
+    "Raw PCAP captures were not archived; transport logs and HTTP summaries are retained.",
+    "Server-side relay host logs were not independently audited."
+  ]
 }
